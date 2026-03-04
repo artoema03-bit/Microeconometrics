@@ -83,12 +83,13 @@ beta  <- summary(regression)$coefficients["train", "Std. Error"]
 # c)
 # create new table to test covariate sensitivity
 
-TABLE_2_m <- matrix(NA, nrow = 4, ncol = 3)
+TABLE_2_m <- matrix(NA, nrow = 5, ncol = 3)
 rownames(TABLE_2_m) <- c(
   "Treated units",
   "Control units",
   "Treatment coefficient",
-  "Standard error"
+  "Standard error",
+  "p-value"
 )
 colnames(TABLE_2_m) <- c(
   "Reg_1",
@@ -110,7 +111,8 @@ reg_extractor <- function(linmod, treat = "train") {
   n0_new <- sum(mf[[treat]] == 0, na.rm = TRUE)
   coef_mod <- coeffs_gen[treat, "Estimate"]
   se_mod <- coeffs_gen[treat, "Std. Error"]
-  c(n1_new = n1_new, n0_new = n0_new, Estimate = coef_mod, SE = se_mod)
+  p_value_mod <- coeffs_gen[treat, "Pr(>|t|)"]
+  c(n1_new = n1_new, n0_new = n0_new, Estimate = coef_mod, SE = se_mod, p_value = p_value_mod)
 }
 
 s1 <- reg_extractor(regression)
@@ -152,12 +154,13 @@ reg_3_3 <- lm(re78 ~ train + age + educ + black + hisp + re74 + re75, data = jtr
 
 
 # building table (for presentation purposes)
-TABLE_3_m <- matrix(NA, nrow = 4, ncol = 4)
+TABLE_3_m <- matrix(NA, nrow = 5, ncol = 4)
 rownames(TABLE_3_m) <- c(
   "Treated units",
   "Control units",
   "Treatment coefficient",
-  "Standard error"
+  "Standard error",
+  "p-value"
 )
 colnames(TABLE_3_m) <- c(
   "Reg_3_generic",
@@ -227,13 +230,21 @@ jtrain3$random_order <- rank(jtrain3$random, ties.method = "first")
 
 jtrain3$treated <- ifelse(jtrain3$random_order <= floor(nrow(jtrain3)/2), 0, 1)
 
-head(jtrain3)
-
-nrow(jtrain3)
 
 # c)
 # alternative treatment assignment method
 
+jtrain3$key_id <- 1:nrow(jtrain3)
+
+treated_2 <- treatment_assign(
+  jtrain3,
+  key = "key_id",
+  strata_varlist = NULL,
+  share_control = 0.5,
+  n_t = 1,
+  missfits = "global",
+  seed = "888888",
+)
 # d)
 # appending Table_1
 
@@ -261,12 +272,13 @@ ee1 <- reg_extractor(regression_e1, treat = "treated")
 ee2 <- reg_extractor(regression_e2, treat = "treated")
 ee3 <- reg_extractor(regression_e3, treat = "treated")
 
-TABLE_7_m <- matrix(NA, nrow = 4, ncol = 6)
+TABLE_7_m <- matrix(NA, nrow = 5, ncol = 6)
 rownames(TABLE_7_m) <- c(
   "Treated units",
   "Control units",
   "Treatment coefficient",
-  "Standard error"
+  "Standard error",
+  "p-value"
 )
 colnames(TABLE_7_m) <- c(
   "Reg_1",
@@ -308,20 +320,25 @@ ff1 <- reg_extractor(regression_f1, treat = "train")
 ff2 <- reg_extractor(regression_f2, treat = "train")
 ff3 <- reg_extractor(regression_f3, treat = "train")
 
-TABLE_8_m <- matrix(NA, nrow = 4, ncol = 6)
+summary(regression_f1)
+summary(regression_f2)
+summary(regression_f3)
+
+TABLE_8_m <- matrix(NA, nrow = 5, ncol = 6)
 rownames(TABLE_8_m) <- c(
   "Treated units",
   "Control units",
   "Treatment coefficient",
-  "Standard error"
+  "Standard error",
+  "p-value"
 )
 colnames(TABLE_8_m) <- c(
   "Reg_1",
   "Reg_2",
   "Reg_3",
-  "Reg_e1",
-  "Reg_e2",
-  "Reg_e3"
+  "Reg_ff1",
+  "Reg_ff2",
+  "Reg_ff3"
 )
 
 TABLE_8_m[ ,1] <- s1
@@ -341,7 +358,6 @@ kable(TABLE_8, caption = "Table 8") %>%
 
 
 # COMMENT TO BE ADDED
-
 
 
 
