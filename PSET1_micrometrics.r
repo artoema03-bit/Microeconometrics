@@ -127,6 +127,12 @@ TABLE_2 <- as.data.frame(TABLE_2_m)
 # using stargazer as recommended by instructions
 stargazer(TABLE_2, summary = FALSE, type = "text", rownames = TRUE)
 
+# Are your results sensitive to the introduction of covariates? 
+# The introduction of covariates slightly reduces the treatment effect, but it is 
+#pretty stable overall. Similarly, the SE remains essentially unchanged after 
+# adding the covariates. Furthermore the significance remains intact. All of these
+# point to the fact that our baseline estimate was not severy biased by ommitted variables
+
 # d)
 # redoing reg_3 with dfbeta
 
@@ -358,7 +364,6 @@ kable(TABLE_8, caption = "Table 8") %>%
 
 
 # COMMENT TO BE ADDED
-
 
 
 
