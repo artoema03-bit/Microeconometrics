@@ -1,18 +1,20 @@
-library(readr)
 library(stargazer)
-
 
 library(kableExtra)
 library(knitr)
 
 library(RCT)
 
-jtrain2 <- read_delim(
-  "files/jtrain2.csv",
-  delim = ";",
-  escape_double = FALSE,
-  trim_ws = TRUE
+# Set wd
+user <- Sys.info()["user"]
+output_dir <- switch(user,
+  "ajnik"="G:/Mans disks/zObsidian/04 Courses/20295 Microeconometrics/Problem Sets/microeconometrics-ps",
+  getwd()
 )
+setwd(output_dir)
+
+# Common setup
+source("./setup.R")
 
 # Task 1
 
@@ -22,23 +24,25 @@ jtrain2 <- read_delim(
 # create function, as it'll be used again in task 2
 Table_original_function <- function(data, vars, treat_var) {
   tvar <- data[[treat_var]]
-  
+
   n1 <- sum(tvar == 1)
   n0 <- sum(tvar ==0)
-  
-  table_m <- matrix(NA, nrow = 6, ncol = length(vars))
+
+  table_m <- matrix(NA, nrow = 7, ncol = length(vars))
   rownames(table_m) <- c(
     "Mean treated",
     "Mean control",
     "SD treated",
     "SD control",
     "Diff. in means",
-    "SE")
+    "SE",
+    "p-value"
+  )
   colnames(table_m) <- vars
-  
+
   for (i in seq_along(vars)) {
     target <- data[[vars[i]]]
-    
+
     treated <- target[tvar==1]
     control <- target[tvar==0]
     treated_mean <- mean(treated)
@@ -47,28 +51,30 @@ Table_original_function <- function(data, vars, treat_var) {
     control_sd <- sd(control)
     diff_in_means <- treated_mean - control_mean
     SE_diff_in_means <- sqrt(treated_sd^2/n1+control_sd^2/n0)
-    
-    table_m[ ,i] <- c(treated_mean, 
-                      control_mean, 
-                      treated_sd, 
-                      control_sd, 
+    p_val <- t.test(x = treated, y = control, alternative = "two.sided", var.equal = FALSE)$p.value
+
+    table_m[ ,i] <- c(treated_mean,
+                      control_mean,
+                      treated_sd,
+                      control_sd,
                       diff_in_means,
-                      SE_diff_in_means
+                      SE_diff_in_means,
+                      p_val
     )
   }
   table_m <- as.data.frame(table_m)
   table_m[] <- round(table_m, 3)
-  
+
   return(table_m)
 }
 
-Table_1 <- Table_original_function(jtrain2, 
+Table_1 <- Table_original_function(jtrain2,
                         vars = c("age","educ","black","hisp","nodegree","re74","re75"),
                         treat_var = "train"
                         )
 
 # using stargazer as recommended by instructions
-# I am not including this line in the function itself to adapt it to queries included 
+# I am not including this line in the function itself to adapt it to queries included
 # in Task 2.
 stargazer(Table_1, summary = FALSE, type = "text", rownames = TRUE)
 
@@ -76,6 +82,8 @@ stargazer(Table_1, summary = FALSE, type = "text", rownames = TRUE)
 # regress re78 on train, save estimate and SE of the coefficient as scalars
 
 regression <- lm(re78 ~ train, data = jtrain2)
+
+summary(regression)
 
 alpha <- coefficients(regression)["train"]
 beta  <- summary(regression)$coefficients["train", "Std. Error"]
@@ -100,21 +108,6 @@ colnames(TABLE_2_m) <- c(
 regression_2 <- lm(re78  ~ train + age + educ + black + hisp, data = jtrain2)
 regression_3 <- lm(re78  ~ train + age + educ + black + hisp + re74 + re75, data = jtrain2)
 
-# clearly tidier to use a function
-reg_extractor <- function(linmod, treat = "train") {
-  tau <- summary(linmod)
-  coeffs_gen <- summary(linmod)$coefficients
-  mf <- model.frame(linmod)
-  if (! treat %in% names(mf)) stop("treatment variable not found in model frame")
-  
-  n1_new <- sum(mf[[treat]] == 1, na.rm = TRUE)
-  n0_new <- sum(mf[[treat]] == 0, na.rm = TRUE)
-  coef_mod <- coeffs_gen[treat, "Estimate"]
-  se_mod <- coeffs_gen[treat, "Std. Error"]
-  p_value_mod <- coeffs_gen[treat, "Pr(>|t|)"]
-  c(n1_new = n1_new, n0_new = n0_new, Estimate = coef_mod, SE = se_mod, p_value = p_value_mod)
-}
-
 s1 <- reg_extractor(regression)
 s2 <- reg_extractor(regression_2)
 s3 <- reg_extractor(regression_3)
@@ -127,9 +120,9 @@ TABLE_2 <- as.data.frame(TABLE_2_m)
 # using stargazer as recommended by instructions
 stargazer(TABLE_2, summary = FALSE, type = "text", rownames = TRUE)
 
-# Are your results sensitive to the introduction of covariates? 
-# The introduction of covariates slightly reduces the treatment effect, but it is 
-#pretty stable overall. Similarly, the SE remains essentially unchanged after 
+# Are your results sensitive to the introduction of covariates?
+# The introduction of covariates slightly reduces the treatment effect, but it is
+#pretty stable overall. Similarly, the SE remains essentially unchanged after
 # adding the covariates. Furthermore the significance remains intact. All of these
 # point to the fact that our baseline estimate was not severy biased by ommitted variables
 
@@ -198,25 +191,18 @@ kable(TABLE_3, caption = "Table 3") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped","condensed"))
 
 # we're gonna wanna use latex (i think). then, we have the following latex-transformed output
-# to do that, just change type = "latex" in the stargazer function argument, and 
+# to do that, just change type = "latex" in the stargazer function argument, and
 # copy-paste the output in latex
 
 
 # Task 2
-
-jtrain3 <- read_delim(
-  "files/jtrain3.csv",
-  delim = ";",
-  escape_double = FALSE,
-  trim_ws = TRUE
-)
 
 #summary(jtrain3)
 
 # a)
 # another table
 
-Table_4 <- Table_original_function(jtrain3, 
+Table_4 <- Table_original_function(jtrain3,
                                    vars = c("age","educ","black","hisp","re74","re75"),
                                    treat_var = "train"
 )
@@ -254,7 +240,7 @@ treated_2 <- treatment_assign(
 # d)
 # appending Table_1
 
-Table_5 <- Table_original_function(jtrain3, 
+Table_5 <- Table_original_function(jtrain3,
                                    vars = c("age","educ","black","hisp","re74","re75"),
                                    treat_var = "treated"
 )
@@ -364,14 +350,3 @@ kable(TABLE_8, caption = "Table 8") %>%
 
 
 # COMMENT TO BE ADDED
-
-
-
-
-
-
-
-
-
-
-
