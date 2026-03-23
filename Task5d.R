@@ -32,15 +32,6 @@ regs <- list(
   regression_3 = lm(re78  ~ train + age + educ + black + hisp + re74 + re75, data = jtrain2)
 )
 
-get_group_counts <- \(model, treat = "train") {
-  mf <- model.frame(model)
-  if (!treat %in% names(mf)) stop("treatment variable not found in model frame")
-
-  n1 <- sum(mf[[treat]] == 1, na.rm = TRUE)
-  n0 <- sum(mf[[treat]] == 0, na.rm = TRUE)
-  c(as.character(n1), as.character(n0))
-}
-
 rows <- data.frame(
   "term" = c("N Treated ", "N Control "),
   "Model 1" = get_group_counts(regs[[1]]),
