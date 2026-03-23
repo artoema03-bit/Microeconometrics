@@ -5,11 +5,12 @@ library(knitr)
 
 library(RCT)
 
+
 # Set wd
 user <- Sys.info()["user"]
 output_dir <- switch(user,
-  "ajnik"="G:/Mans disks/zObsidian/04 Courses/20295 Microeconometrics/Problem Sets/microeconometrics-ps",
-  getwd()
+                    "ajnik"="G:/Mans disks/zObsidian/04 Courses/20295 Microeconometrics/Problem Sets/microeconometrics-ps",
+                    getwd()
 )
 setwd(output_dir)
 
@@ -26,10 +27,14 @@ TABLE_1[[1]][[1]] <- "jtrain2"
 
 TABLE_1
 
-# At a 5% significance level, only the difference in `nodegree` is statistically significant.
+# Comment:
+# How many variables are balanced? Are you surprised?
+# At a 5% significance level, only the 13 pp difference in `nodegree` is statistically significant.
 # At a 10% significance level, also the difference in `hisp` is statistically significant.
 # At these significance levels we would expect to find only 1 in 20 and 1 in 10 significance differences, respectively, so there is some cause for concern on the sample being balanced.
-# However, given that this a smaller subset of a randomized sample, these imbalances could have also arisen due to bad luck.
+# It is possible for this to be due to random imbalance, especially so as this a smaller subset of a randomized sample, and the nature of the experimental design eases the concern from the standpoint of validity.
+# ??? Given the limited representativeness of hispanics in the sampled population, it is unsurprising that the smaller control group halves their numbers.
+# This also does not constitute a validity concern with respect to the randomization procedure.
 
 # b)
 # regress re78 on train, save estimate and SE of the coefficient as scalars
@@ -38,10 +43,16 @@ regression <- lm(re78 ~ train, data = jtrain2)
 summary(regression)
 
 alpha <- coefficients(regression)["train"]
-beta  <- summary(regression)$coefficients["train", "Std. Error"]
+alpha_se  <- summary(regression)$coefficients["train", "Std. Error"]
+alpha_se
 
-# The coefficient implies that participation in the training program is associated with an increase of 1.79 thousand 1982 dollars in 1978 real earnings , ceteris paribus.
-# The coefficient is significant at a 1% significance level.
+
+# Comment:
+# Interpret the coefficient
+# The coefficient from regressing real earnings (1978) on the treatment variable is 1.794, with associated standard error equal to 0.633,
+# i.e. the coefficient is statistically significant at a 1% significance level.
+# This means that being randomly assigned to the treatment group is associated with an increase in participant's real earnings by $1,794 by the year 1978, ceteris paribus.
+# ??? Naturally, it is important to note that the regression does not include any controls, so that, while the validity of the result is not in question, its precision is not certain.
 
 # c)
 # create new table to test covariate sensitivity
@@ -64,6 +75,7 @@ TABLE_2 <- modelsummary(
 
 TABLE_2
 
+# Comment:
 # Are your results sensitive to the introduction of covariates?
 # The introduction of covariates slightly reduced the treatment coefficient from 1.79 to 1.68 thousand 1982 dollars, but it is pretty stable overall.
 # Similarly, the SE marginally decreased, but remains essentially unchanged after adding the covariates.
@@ -106,9 +118,15 @@ modelsummary(
   title = "Task 1d"
 )
 
-# The removal of the top/bottom 3, 5, and 10 influential observations reduced the treatment coefficient from 1.68 to 1.35 to 1.22 to 1.02 thousand 1982 dollars, respectively.
-# This amounts to a 40% decrease from the baseline to the 10 observation case.
-# Likewise, the SEs for the estimated was also reduced, but to a lesser extent than the treatment coefficients as the significance dropped to only the 5% significance level.
+# Comment
+# The treatment coefficient changes markedly after dropping the most influential observations.
+# Given the baseline coefficient of 1.68, dropping the top and bottom 10 most influential observations reduces the coefficient to 1.02,
+# amounting to a loss of $658 (in 1982 dollars) in the associated change in earnings.
+# ???We can also note that, as the sample size shrinks,the standard errors also decrease, as expected. This helps p-values staying low.???
+# ???In conclusion, while the loss does not impinge on the statistical significance of the results,
+# ???we can safely state that the regression results are indeed sensitive to influential observations.
+
+# Likewise, the SEs for the estimates were also reduced, but to a lesser extent than the treatment coefficients as the significance dropped to only the 5% significance level.
 
 # Task 2
 
@@ -121,6 +139,20 @@ TABLE_1j3[[1]][[1]] <- "jtrain3 (train)"
 TABLE_1_2a <- rbind(TABLE_1, TABLE_1j3)
 
 TABLE_1_2a
+
+# Comment
+# Table four includes, side by side, the contents of Table 1 and the
+# data from running the same analysis on jtrain3.
+# Note that all jtrain3 covariates are less balanced than the ones in the RCT sample.
+# For example, there is a 9 years difference in the average age of units across treatment
+# groups; blacks still constitute 85% of the treatment group, though the new control group
+# has only 25% black units.
+# The new control units also tend to have much higher baseline real earnings in
+# years 1974 and 1975 (roughly $19,000 compared to $1,267-$2,107). This is especially stark,
+# suggesting that the treated and control populations are fundamentally different.
+# For this reason, we can state that jtrain3's control group is far less balanced than
+# the RCT control group, as non-experimental controls look nothing like the treated group
+# on observables and probably unobservable, too.
 
 # b)
 # new nonsense treatment (called treated)
@@ -148,10 +180,14 @@ treatment_rand <- treatment_assign(
 
 jtrain3$treated_2 <- treatment_rand$data$treat
 
-# Testing correlation
+# Testing the correlation
 cor.test(jtrain3$treated, jtrain3$treated_2)
 
-# As expected, fail to reject the null of zero correlation
+# Comment:
+# Is the correlation between 'treated' and 'treated_2' statistically significant?
+# The correlation is -0.0228, which is unsurprisingly low, given that both treatments
+# are assigned randomly and independently of both data and each other.
+# As expected, fail to reject the null of zero correlation.
 
 # d)
 # appending Table_1
@@ -164,9 +200,22 @@ TABLE_1_2d <- rbind(TABLE_1_2a, TABLE_1_2d)
 
 TABLE_1_2d
 
-# Only the difference for one variable `age` is statistically significant at a 10% significance level.
-# This is expected as `treated` is a randomly assigned variable, so it is plausible that one variable out of 6 is unbalanced.
-# With more variables, we would expect 1 out of 10 to be unbalanced.
+## Only the difference for one variable `age` is statistically significant at a 10% significance level.
+## This is expected as `treated` is a randomly assigned variable, so it is plausible that one variable out of 6 is unbalanced.
+## With more variables, we would expect 1 out of 10 to be unbalanced.
+
+# Comment
+# What do you find corresponds to your expectations?
+# The issue with the jtrain3 dataset, as stated earlier, is that
+# the non-experimental, jtrain3 control group has no relation with the units
+# in the control group, and that the original treatment ( variable 'train')
+# is not randomly assigned.
+# By randomly re-assigning treatment to the jtrain3 dataset, we obtain, as
+# expected, a much more balanced set of covariates.
+# For example, the age gap, the ethnicity composition gap and the real earnings
+# gap in both baseline years are now gone (see table).
+# The downside, naturally, is that the new treatment group has no economic interpretation,
+# it is merely a coin-flip.
 
 # e)
 # appending Table_2 using "treated" treatment variable
@@ -188,8 +237,11 @@ TABLE_2_2e <- modelsummary(
 
 TABLE_2_2e
 
-# The coefficient on treated is very unstable and statistically insignificant.
-# This is expected as `treated` is random.
+# Comment:
+# Comment on what you find. Is it what you expected?
+# The treated/control ratio has no relation at all with the actual treatment;
+# the coefficients obtained by the new regressions are, expectedly, statistically
+# insignificant and unstable.
 
 # f)
 # appending Table_2 using "train" treatment variable
@@ -218,3 +270,18 @@ TABLE_2_2f
 # Adding covariates, the coefficient becomes less negative (1978 real earnings lower by 8.45 thousand 1982 dollars) and remains statistically significant.
 # Adding past outcomes, the point estimate inverts (213 hundred 1982 dollar increase in '78 real earnings) and becomes statistically insignificant.
 # These results are contrary to those of the experimental control group, both in point estimates and stability with respect to covariates.
+
+# Comment:
+# Comment on what you find. Is it what you expected? Are your results sensitive to the introduction of covariates?
+# The interpretation of each new regression is interesting:
+# Regressing re78 on train (Reg_ff1) yields a strongly negative coefficient. This is
+# entirely a byproduct of the fact that individuals in the jtrain3 control group
+# earn significantly more than those in the original RCT treatment group. Then, there
+# is no causal content, though the p-value indicates strong significance.
+# Regressing re78 on treatment, given the first set of controls (Reg_ff2)
+# does not eliminate the bias.
+# Further adding re74 and re75 further reduces the bias, but the analysis is still
+# completely unable to recover the RCT coefficient (1.794). Also note that the
+# associated p-value is 0.8.
+# In conclusion, the non-experimental dataset is unable to recover the original
+# effects, and incapable of offering causal interpretations of any measure.
