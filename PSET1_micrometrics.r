@@ -7,15 +7,15 @@ library(RCT)
 
 
 # Set wd
-#user <- Sys.info()["user"]
-#output_dir <- switch(user,
-#                     "ajnik"="G:/Mans disks/zObsidian/04 Courses/20295 Microeconometrics/Problem Sets/microeconometrics-ps",
-#                     getwd()
-#)
-#setwd(output_dir)
+user <- Sys.info()["user"]
+output_dir <- switch(user,
+                    "ajnik"="G:/Mans disks/zObsidian/04 Courses/20295 Microeconometrics/Problem Sets/microeconometrics-ps",
+                    getwd()
+)
+setwd(output_dir)
 
 # Common setup
-#source("./setup.R")
+source("./setup.R")
 
 # Task 1
 
@@ -33,11 +33,11 @@ stargazer(Table_1, summary = FALSE, type = "text", rownames = TRUE)
 
 # Comment:
 # How many variables are balanced? Are you surprised?
-# All variables are more or less balanced. The least so are 'nodegree', as there is a 
+# All variables are more or less balanced. The least so are 'nodegree', as there is a
 # 13 p.p. difference across the two treatment groups, and 'hisp'.
-# As for 'nodegree', the difference, given the standard error of 0.041, is clearly 
-# statistically significant. It is possible for it to be due to random imbalance, and 
-# the nature of the experimental design prevents it from being a concern from the 
+# As for 'nodegree', the difference, given the standard error of 0.041, is clearly
+# statistically significant. It is possible for it to be due to random imbalance, and
+# the nature of the experimental design prevents it from being a concern from the
 # standpoint of validity.
 # Given the limited representativeness of hispanics in the sampled population,
 # it is unsurprising that the smaller control group halves their numbers. This also
@@ -58,8 +58,8 @@ alpha_se
 
 # Comment:
 # Interpret the coefficient
-# The coefficient from regressing real earnings (1978) on the treatment variable is 
-# 1.794, with associated standard error equal to 0.633, ie it is statistically 
+# The coefficient from regressing real earnings (1978) on the treatment variable is
+# 1.794, with associated standard error equal to 0.633, ie it is statistically
 # significant
 # This means that being randomly assigned to the treatment group
 # increases a participant's real earnings by $1,794 by the year 1978.
@@ -104,7 +104,7 @@ stargazer(TABLE_2, summary = FALSE, type = "text", rownames = TRUE)
 # The introduction of covariates slightly reduces the treatment effect, but it is
 # stable overall.
 # Similarly, the SE remains essentially unchanged after adding the covariates.
-# Furthermore the significance remains intact. 
+# Furthermore the significance remains intact.
 #All of these aspects confirms the hypothesis underlying the initial RCT that
 # the baseline estimate is not severely biased by omitted variables
 
@@ -168,13 +168,13 @@ stargazer(TABLE_3, summary = FALSE, type = "text", rownames = TRUE)
 # We have constructed a table (TABLE_3) for clarity and presentation purposes.
 # Evidently, the value of the treatment coefficient changes markedly as the most
 # extreme and influential observations are plucked out. Given the baseline coefficient
-# of 1.68 that derives from the regression that includes controls, dropping as few as 
+# of 1.68 that derives from the regression that includes controls, dropping as few as
 # 20 observations causes a reduction to 1.02, amounting to a loss of $658 in estimated
 # earnings impact.
 # We can also note that, as the sample size shrinks,the standard errors also decrease,
 # as expected. This helps p-values staying low.
-# In conclusion, while the loss does not impinge on the statistical significance of 
-# the results, we can safely state that the regression results are 
+# In conclusion, while the loss does not impinge on the statistical significance of
+# the results, we can safely state that the regression results are
 # indeed sensitive to influential observations.
 
 
@@ -214,9 +214,9 @@ kable(Table_4, caption = "Table 4") %>%
 # groups; blacks still constitute 85% of the treatment group, though the new control group
 # has only 25% black units.
 # The new control units also tend to have much higher baseline real earnings in
-# years 1974 and 1975 (roughly $19,000 compared to $1,267-$2,107). This is especially stark, 
+# years 1974 and 1975 (roughly $19,000 compared to $1,267-$2,107). This is especially stark,
 # suggesting that the treated and control populations are fundamentally different.
-# For this reason, we can state that jtrain3's control group is far less balanced than 
+# For this reason, we can state that jtrain3's control group is far less balanced than
 # the RCT control group, as non-experimental controls look nothing like the treated group
 # on observables and probably unobservable, too.
 
@@ -273,11 +273,11 @@ kable(Table_6, caption = "Table 6") %>%
 # What do you find corresponds to your expectations?
 # The problem with the jtrain3 dataset, as stated earlier, is (i) that
 # the non-experimental, jtrain3 control group has no relation with the units
-# in the control group, and (ii) that the original treatment ( variable 'train') 
+# in the control group, and (ii) that the original treatment ( variable 'train')
 # is not randomly assigned.
-# By randomly re-assigning treatment to the jtrain3 dataset, we obtain, as 
+# By randomly re-assigning treatment to the jtrain3 dataset, we obtain, as
 # expected, a much more balanced set of covariates.
-# For example, the age gap, the ethnicity composition gap and the real earnings 
+# For example, the age gap, the ethnicity composition gap and the real earnings
 # gap in both baseline years are now gone (see table).
 # The downside, naturally, is that the new treatment group has no economic interpretation,
 # it is merely a coin-flip.
@@ -385,12 +385,12 @@ kable(TABLE_8, caption = "Table 8") %>%
 # The interpretation of each new regression is interesting:
 # Regressing re78 on train (Reg_ff1) yields a strongly negative coefficient. This is
 # entirely a byproduct of the fact that individuals in the jtrain3 control group
-# earn significantly more than those in the original RCT treatment group. Then, there 
+# earn significantly more than those in the original RCT treatment group. Then, there
 # is no causal content, though the p-value indicates strong significance.
-# Regressing re78 on treatment, given the first set of controls (Reg_ff2) 
+# Regressing re78 on treatment, given the first set of controls (Reg_ff2)
 # does not eliminate the bias.
 # Further adding re74 and re75 further reduces the bias, but the analysis is still
-# completely unable to recover the RCT coefficient (1.794). Also note that the 
+# completely unable to recover the RCT coefficient (1.794). Also note that the
 # associated p-value is 0.8.
 # In conclusion, the non-experimental dataset is unable to recover the original
 # effects, and incapable of offering causal interpretations of any measure.
