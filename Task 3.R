@@ -22,7 +22,27 @@ summary(regression_lasso1)
 regression_postlasso <- lm(re78 ~ train, data = jtrain2)
 
 summary(regression_postlasso)
-# Interpretation needed
+
+# The Lasso selected 0 covariates. All coefficients are estimated as exactly zero. 
+# This indicates that, given the penalty parameter, none of the covariates 
+# (age, educ, black, hisp, re74, re75) have sufficient predictive power for earnings 
+# (re78) to be included in the model.
+
+
+# Key issues with inference based on this approach:
+# This is simply the difference-in-means estimator, not a post-Lasso estimator
+# since no covariates were selected because Lasso results showed that the chosen 
+# covariates did not predict outcomes.
+#
+# Omitted Variable Bias might be present since the Lasso only selects variables
+# that are strong predictors of the outcome. However, a variable might be a "weak"
+# predictor of Y but strongly correlated with the treatment. If such a variable 
+# is omitted because Lasso missed it, the treatment effect estimate will be biased 
+# Another issue is that there may be Model Selection Mistakes. It is very hard 
+# to guarantee that LASSO will pick the ideal set of variables.
+# A single mistake in doing so may affect the final results
+
+
 
 #b)
 # (1)
