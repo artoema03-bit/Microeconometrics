@@ -1,6 +1,9 @@
 # Common packages
 library(tidyverse)
 library(stargazer)
+library(modelsummary)
+
+options("modelsummary_factory_default" = "huxtable")
 
 # Load data
 

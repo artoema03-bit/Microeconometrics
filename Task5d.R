@@ -1,8 +1,5 @@
 library(sandwich)
 library(lmtest)
-library(modelsummary)
-
-options("modelsummary_factory_default" = "huxtable")
 
 # Set wd
 user <- Sys.info()["user"]
@@ -70,7 +67,7 @@ modelsummary(
 
 # redoing reg_3 with dfbeta
 
-inflm_reg <- influence.measures(regression_3) # first subtask
+inflm_reg <- influence.measures(regs[[3]]) # first subtask
 influence_train <- inflm_reg$infmat[,"dfb.tran"] # no idea why its called that
 
 # second subtask (rerun regression)
@@ -88,7 +85,7 @@ t2 <- subsample_maker(dc=5)
 t3 <- subsample_maker(dc=10)
 
 regs_dfb <- list(
-  reg_3_generic = regression_3,
+  reg_3_generic = regs[[3]],
   reg_3_drop3 = lm(re78 ~ train + age + educ + black + hisp + re74 + re75, data = jtrain2[-t1,]),
   reg_3_drop5 = lm(re78 ~ train + age + educ + black + hisp + re74 + re75, data = jtrain2[-t2,]),
   reg_3_drop10 = lm(re78 ~ train + age + educ + black + hisp + re74 + re75, data = jtrain2[-t3,])
