@@ -88,11 +88,21 @@ Table_original_function <- function(data, vars, treat_var) {
   return(table_m)
 }
 
-get_group_counts <- \(model, treat = "train") {
-  mf <- model.frame(model)
-  if (!treat %in% names(mf)) stop("treatment variable not found in model frame")
+get_group_counts <- \(models, treat = "train") {
 
-  n1 <- sum(mf[[treat]] == 1, na.rm = TRUE)
-  n0 <- sum(mf[[treat]] == 0, na.rm = TRUE)
-  c(as.character(n1), as.character(n0))
+  res <- map_dfr(models, \(model){
+    mf <- model.frame(model)
+    if (!treat %in% names(mf)) stop("treatment variable not found in model frame")
+
+    n1 <- sum(mf[[treat]] == 1, na.rm = TRUE)
+    n0 <- sum(mf[[treat]] == 0, na.rm = TRUE)
+    c(as.character(n1), as.character(n0))
+  })
+
+  res
+
+  data.frame(
+    "term" = c("N Treated ", "N Control "),
+    res
+  )
 }

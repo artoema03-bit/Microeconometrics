@@ -32,20 +32,7 @@ regs <- list(
   regression_3 = lm(re78  ~ train + age + educ + black + hisp + re74 + re75, data = jtrain2)
 )
 
-rows <- data.frame(
-  "term" = c("N Treated ", "N Control "),
-  "Model 1" = get_group_counts(regs[[1]]),
-  "Model 2" = get_group_counts(regs[[2]]),
-  "Model 3" = get_group_counts(regs[[3]])
-)
-
-modelsummary(
-  regs,
-  add_rows = rows,
-  gof_map = c("r.squared", "adj.r.squared", "nobs"),
-  stars = c('*' = .1, '**' = .05, '***' = 0.01),
-  title = "Task 1c (no adjustment)"
-)
+rows <- get_group_counts(regs)
 
 modelsummary(
   regs,
@@ -82,21 +69,7 @@ regs_dfb <- list(
   reg_3_drop10 = lm(re78 ~ train + age + educ + black + hisp + re74 + re75, data = jtrain2[-t3,])
 )
 
-rows_dfb <- data.frame(
-  "term" = c("N Treated ", "N Control "),
-  "Model 1" = get_group_counts(regs_dfb[[1]]),
-  "Model 2" = get_group_counts(regs_dfb[[2]]),
-  "Model 3" = get_group_counts(regs_dfb[[3]]),
-  "Model 4" = get_group_counts(regs_dfb[[4]])
-)
-
-modelsummary(
-  regs_dfb,
-  add_rows = rows_dfb,
-  gof_map = c("r.squared", "adj.r.squared", "nobs"),
-  stars = c('*' = .1, '**' = .05, '***' = 0.01),
-  title = "Task 1d (no adjustment)"
-)
+rows_dfb <- get_group_counts(regs_dfb)
 
 modelsummary(
   regs_dfb,
