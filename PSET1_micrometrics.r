@@ -21,7 +21,10 @@ source("./setup.R")
 # a)
 # Create table to check balance across treatment groups for some covariates
 vars <- c("age", "educ", "black", "hisp", "nodegree", "re74", "re75")
-datasummary_balance(~ train , fmt = 3, data = jtrain2[, c("train", vars)], dinm_statistic = "p.value")
+TABLE_1 <- datasummary_balance(~ train , fmt = 3, data = jtrain2[, c("train", vars)], dinm_statistic = "p.value", title = "Balance table")
+TABLE_1[[1]][[1]] <- "jtrain2"
+
+TABLE_1
 
 # At a 5% significance level, only the difference in `nodegree` is statistically significant.
 # At a 10% significance level, also the difference in `hisp` is statistically significant.
@@ -49,29 +52,17 @@ regs <- list(
   regression_3 = lm(re78  ~ train + age + educ + black + hisp + re74 + re75, data = jtrain2)
 )
 
-get_group_counts <- \(model, treat = "train") {
-  mf <- model.frame(model)
-  if (!treat %in% names(mf)) stop("treatment variable not found in model frame")
+rows <- get_group_counts(regs)
 
-  n1 <- sum(mf[[treat]] == 1, na.rm = TRUE)
-  n0 <- sum(mf[[treat]] == 0, na.rm = TRUE)
-  c(as.character(n1), as.character(n0))
-}
-
-rows <- data.frame(
-  "term" = c("N Treated ", "N Control "),
-  "Model 1" = get_group_counts(regs[[1]]),
-  "Model 2" = get_group_counts(regs[[2]]),
-  "Model 3" = get_group_counts(regs[[3]])
-)
-
-modelsummary(
+TABLE_2 <- modelsummary(
   regs,
   add_rows = rows,
   gof_map = c("r.squared", "adj.r.squared", "nobs"),
   stars = c('*' = .1, '**' = .05, '***' = 0.01),
   title = "Task 1c"
 )
+
+TABLE_2
 
 # Are your results sensitive to the introduction of covariates?
 # The introduction of covariates slightly reduced the treatment coefficient from 1.79 to 1.68 thousand 1982 dollars, but it is pretty stable overall.
@@ -81,7 +72,6 @@ modelsummary(
 
 # d)
 # redoing reg_3 with dfbeta
-
 inflm_reg <- influence.measures(regs[[3]]) # first subtask
 influence_train <- inflm_reg$infmat[,"dfb.tran"] # no idea why its called that
 
@@ -106,13 +96,7 @@ regs_dfb <- list(
   reg_3_drop10 = lm(re78 ~ train + age + educ + black + hisp + re74 + re75, data = jtrain2[-t3,])
 )
 
-rows_dfb <- data.frame(
-  "term" = c("N Treated ", "N Control "),
-  "Model 1" = get_group_counts(regs_dfb[[1]]),
-  "Model 2" = get_group_counts(regs_dfb[[2]]),
-  "Model 3" = get_group_counts(regs_dfb[[3]]),
-  "Model 4" = get_group_counts(regs_dfb[[4]])
-)
+rows_dfb <- get_group_counts(regs_dfb)
 
 modelsummary(
   regs_dfb,
@@ -128,20 +112,15 @@ modelsummary(
 
 # Task 2
 
-#summary(jtrain3)
-
 # a)
-# another table
+vars_j3 <- c("age", "educ", "black", "hisp", "re74", "re75")
 
-Table_4 <- Table_original_function(jtrain3,
-                                   vars = c("age","educ","black","hisp","re74","re75"),
-                                   treat_var = "train"
-)
+TABLE_1j3 <- datasummary_balance(~ train , fmt = 3, data = jtrain3[, c("train", vars_j3)], dinm_statistic = "p.value", title = "Balance table for jtrain3 (using train)")
+TABLE_1j3[[1]][[1]] <- "jtrain3 (train)"
 
-stargazer(Table_4, summary = FALSE, type = "text", rownames = TRUE)
+TABLE_1_2a <- rbind(TABLE_1, TABLE_1j3)
 
-kable(Table_4, caption = "Table 4") %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("striped","condensed"))
+TABLE_1_2a
 
 # b)
 # new nonsense treatment (called treated)
@@ -150,134 +129,92 @@ set.seed(88888)
 
 jtrain3$random <- runif(nrow(jtrain3))
 jtrain3$random_order <- rank(jtrain3$random, ties.method = "first")
-
 jtrain3$treated <- ifelse(jtrain3$random_order <= floor(nrow(jtrain3)/2), 0, 1)
-
 
 # c)
 # alternative treatment assignment method
 
 jtrain3$key_id <- 1:nrow(jtrain3)
 
-treated_2 <- treatment_assign(
+treatment_rand <- treatment_assign(
   jtrain3,
   key = "key_id",
   strata_varlist = NULL,
   share_control = 0.5,
   n_t = 1,
   missfits = "global",
-  seed = "888888",
+  seed = "88888",
 )
+
+jtrain3$treated_2 <- treatment_rand$data$treat
+
+# Testing correlation
+cor.test(jtrain3$treated, jtrain3$treated_2)
+
+# As expected, fail to reject the null of zero correlation
+
 # d)
 # appending Table_1
 
-Table_5 <- Table_original_function(jtrain3,
-                                   vars = c("age","educ","black","hisp","re74","re75"),
-                                   treat_var = "treated"
-)
-colnames(Table_5) <- paste0(colnames(Table_5), "_jtrain3")
-Table_6 <- cbind(Table_1, Table_5)
+vars_j3 <- c("age", "educ", "black", "hisp", "re74", "re75")
+TABLE_1_2d <- datasummary_balance(~ treated , fmt = 3, data = jtrain3[, c("treated", vars_j3)], dinm_statistic = "p.value")
+TABLE_1_2d[[1]][[1]] <- "jtrain3 (treated)"
 
-stargazer(Table_6, summary = FALSE, type = "text", rownames = TRUE)
+TABLE_1_2d <- rbind(TABLE_1_2a, TABLE_1_2d)
 
-kable(Table_6, caption = "Table 6") %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("striped","condensed"))
+TABLE_1_2d
 
-# COMMENT TO BE ADDED
+# Only the difference for one variable `age` is statistically significant at a 10% significance level.
+# This is expected as `treated` is a randomly assigned variable, so it is plausible that one variable out of 6 is unbalanced.
+# With more variables, we would expect 1 out of 10 to be unbalanced.
 
 # e)
 # appending Table_2 using "treated" treatment variable
-regression_e1 <- lm(re78  ~ treated, data = jtrain3)
-regression_e2 <- lm(re78  ~ treated + age + educ + black + hisp, data = jtrain3)
-regression_e3 <- lm(re78  ~ treated + age + educ + black + hisp + re74 + re75, data = jtrain3)
-
-ee1 <- reg_extractor(regression_e1, treat = "treated")
-ee2 <- reg_extractor(regression_e2, treat = "treated")
-ee3 <- reg_extractor(regression_e3, treat = "treated")
-
-TABLE_7_m <- matrix(NA, nrow = 5, ncol = 6)
-rownames(TABLE_7_m) <- c(
-  "Treated units",
-  "Control units",
-  "Treatment coefficient",
-  "Standard error",
-  "p-value"
-)
-colnames(TABLE_7_m) <- c(
-  "Reg_1",
-  "Reg_2",
-  "Reg_3",
-  "Reg_e1",
-  "Reg_e2",
-  "Reg_e3"
+regs_2e <- list(
+  regression_e1 = lm(re78  ~ treated, data = jtrain3),
+  regression_e2 = lm(re78  ~ treated + age + educ + black + hisp, data = jtrain3),
+  regression_e3 = lm(re78  ~ treated + age + educ + black + hisp + re74 + re75, data = jtrain3)
 )
 
-TABLE_7_m[ ,1] <- s1
-TABLE_7_m[ ,2] <- s2
-TABLE_7_m[ ,3] <- s3
-TABLE_7_m[ ,4] <- ee1
-TABLE_7_m[ ,5] <- ee2
-TABLE_7_m[ ,6] <- ee3
+rows_2e <- get_group_counts(regs_2e, treat = "treated")
 
-TABLE_7 <- as.data.frame(TABLE_7_m)
+TABLE_2_2e <- modelsummary(
+  c(regs, regs_2e),
+  add_rows = cbind(rows, rows_2e[,-1]),
+  gof_map = c("r.squared", "adj.r.squared", "nobs"),
+  stars = c('*' = .1, '**' = .05, '***' = 0.01),
+  title = "Task 1c"
+)
 
-# using stargazer as recommended by instructions
-stargazer(TABLE_7, summary = FALSE, type = "text", rownames = TRUE)
+TABLE_2_2e
 
-kable(TABLE_7, caption = "Table 7") %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("striped","condensed"))
-
-# COMMENT TO BE ADDED
-# comment: since the treated var we are using is nonsense, evidently the treated/control
-# ratio is insane: it has no relation at all with the actual treatment
+# The coefficient on treated is very unstable and statistically insignificant.
+# This is expected as `treated` is random.
 
 # f)
 # appending Table_2 using "train" treatment variable
 
-# Possible to use a function, but easier to copy-paste
-regression_f1 <- lm(re78  ~ train, data = jtrain3)
-regression_f2 <- lm(re78  ~ train + age + educ + black + hisp, data = jtrain3)
-regression_f3 <- lm(re78  ~ train + age + educ + black + hisp + re74 + re75, data = jtrain3)
-
-ff1 <- reg_extractor(regression_f1, treat = "train")
-ff2 <- reg_extractor(regression_f2, treat = "train")
-ff3 <- reg_extractor(regression_f3, treat = "train")
-
-summary(regression_f1)
-summary(regression_f2)
-summary(regression_f3)
-
-TABLE_8_m <- matrix(NA, nrow = 5, ncol = 6)
-rownames(TABLE_8_m) <- c(
-  "Treated units",
-  "Control units",
-  "Treatment coefficient",
-  "Standard error",
-  "p-value"
-)
-colnames(TABLE_8_m) <- c(
-  "Reg_1",
-  "Reg_2",
-  "Reg_3",
-  "Reg_ff1",
-  "Reg_ff2",
-  "Reg_ff3"
+regs_2f <- list(
+  regression_f1 = lm(re78  ~ train, data = jtrain3),
+  regression_f2 = lm(re78  ~ train + age + educ + black + hisp, data = jtrain3),
+  regression_f3 = lm(re78  ~ train + age + educ + black + hisp + re74 + re75, data = jtrain3)
 )
 
-TABLE_8_m[ ,1] <- s1
-TABLE_8_m[ ,2] <- s2
-TABLE_8_m[ ,3] <- s3
-TABLE_8_m[ ,4] <- ff1
-TABLE_8_m[ ,5] <- ff2
-TABLE_8_m[ ,6] <- ff3
+rows_2f <- get_group_counts(regs_2e, treat = "treated")
 
-TABLE_8 <- as.data.frame(TABLE_8_m)
+TABLE_2_2f <- modelsummary(
+  c(regs, regs_2e, regs_2f),
+  add_rows = cbind(rows, rows_2e[,-1], rows_2f[,-1]),
+  gof_map = c("r.squared", "adj.r.squared", "nobs"),
+  stars = c('*' = .1, '**' = .05, '***' = 0.01),
+  title = "Task 1c"
+)
 
-# using stargazer as recommended by instructions
-stargazer(TABLE_8, summary = FALSE, type = "text", rownames = TRUE)
+TABLE_2_2f
 
-kable(TABLE_8, caption = "Table 8") %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("striped","condensed"))
-
-
-# COMMENT TO BE ADDED
+# For the dataset with non-experimental controls, using `train` as the treatment dummy, the coefficient in the univariate
+# model is negative: participation in the training programme is associated with a 15.2 thousand 1982 dollar drop in 1978 real earnings, ceteris paribus.
+# The coefficient is also statistically significant at any conventional significance level.
+# Adding covariates, the coefficient becomes less negative (1978 real earnings lower by 8.45 thousand 1982 dollars) and remains statistically significant.
+# Adding past outcomes, the point estimate inverts (213 hundred 1982 dollar increase in '78 real earnings) and becomes statistically insignificant.
+# These results are contrary to those of the experimental control group, both in point estimates and stability with respect to covariates.
