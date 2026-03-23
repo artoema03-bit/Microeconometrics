@@ -5,16 +5,17 @@ library(knitr)
 
 library(RCT)
 
+
 # Set wd
-user <- Sys.info()["user"]
-output_dir <- switch(user,
-  "ajnik"="G:/Mans disks/zObsidian/04 Courses/20295 Microeconometrics/Problem Sets/microeconometrics-ps",
-  getwd()
-)
-setwd(output_dir)
+#user <- Sys.info()["user"]
+#output_dir <- switch(user,
+#                     "ajnik"="G:/Mans disks/zObsidian/04 Courses/20295 Microeconometrics/Problem Sets/microeconometrics-ps",
+#                     getwd()
+#)
+#setwd(output_dir)
 
 # Common setup
-source("./setup.R")
+#source("./setup.R")
 
 # Task 1
 
@@ -30,6 +31,18 @@ Table_1 <- Table_original_function(jtrain2,
 # in Task 2.
 stargazer(Table_1, summary = FALSE, type = "text", rownames = TRUE)
 
+# Comment:
+# How many variables are balanced? Are you surprised?
+# All variables are more or less balanced. The least so are 'nodegree', as there is a 
+# 13 p.p. difference across the two treatment groups, and 'hisp'.
+# As for 'nodegree', the difference, given the standard error of 0.041, is clearly 
+# statistically significant. It is possible for it to be due to random imbalance, and 
+# the nature of the experimental design prevents it from being a concern from the 
+# standpoint of validity.
+# Given the limited representativeness of hispanics in the sampled population,
+# it is unsurprising that the smaller control group halves their numbers. This also
+# does not constitute a validity concern with respect to the randomization procedure.
+
 # b)
 # regress re78 on train, save estimate and SE of the coefficient as scalars
 
@@ -38,7 +51,21 @@ regression <- lm(re78 ~ train, data = jtrain2)
 summary(regression)
 
 alpha <- coefficients(regression)["train"]
-beta  <- summary(regression)$coefficients["train", "Std. Error"]
+alpha_se  <- summary(regression)$coefficients["train", "Std. Error"]
+
+#alpha
+alpha_se
+
+# Comment:
+# Interpret the coefficient
+# The coefficient from regressing real earnings (1978) on the treatment variable is 
+# 1.794, with associated standard error equal to 0.633, ie it is statistically 
+# significant
+# This means that being randomly assigned to the treatment group
+# increases a participant's real earnings by $1,794 by the year 1978.
+# Naturally, it is important to note that the regression does not include any controls,
+# so that, while the validity of the result is not in question, its precision
+# is not certain.
 
 # c)
 # create new table to test covariate sensitivity
@@ -72,11 +99,14 @@ TABLE_2 <- as.data.frame(TABLE_2_m)
 # using stargazer as recommended by instructions
 stargazer(TABLE_2, summary = FALSE, type = "text", rownames = TRUE)
 
+# Comment:
 # Are your results sensitive to the introduction of covariates?
 # The introduction of covariates slightly reduces the treatment effect, but it is
-#pretty stable overall. Similarly, the SE remains essentially unchanged after
-# adding the covariates. Furthermore the significance remains intact. All of these
-# point to the fact that our baseline estimate was not severy biased by ommitted variables
+# stable overall.
+# Similarly, the SE remains essentially unchanged after adding the covariates.
+# Furthermore the significance remains intact. 
+#All of these aspects confirms the hypothesis underlying the initial RCT that
+# the baseline estimate is not severely biased by omitted variables
 
 # d)
 # redoing reg_3 with dfbeta
@@ -134,6 +164,19 @@ TABLE_3[] <- round(TABLE_3, 3)
 # using stargazer as recommended by instructions
 stargazer(TABLE_3, summary = FALSE, type = "text", rownames = TRUE)
 
+# Comment
+# We have constructed a table (TABLE_3) for clarity and presentation purposes.
+# Evidently, the value of the treatment coefficient changes markedly as the most
+# extreme and influential observations are plucked out. Given the baseline coefficient
+# of 1.68 that derives from the regression that includes controls, dropping as few as 
+# 20 observations causes a reduction to 1.02, amounting to a loss of $658 in estimated
+# earnings impact.
+# We can also note that, as the sample size shrinks,the standard errors also decrease,
+# as expected. This helps p-values staying low.
+# In conclusion, while the loss does not impinge on the statistical significance of 
+# the results, we can safely state that the regression results are 
+# indeed sensitive to influential observations.
+
 
 kable(Table_1, caption = "Table 1") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped","condensed"))
@@ -142,11 +185,6 @@ kable(TABLE_2, caption = "Table 2") %>%
 kable(TABLE_3, caption = "Table 3") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped","condensed"))
 
-# we're gonna wanna use latex (i think). then, we have the following latex-transformed output
-# to do that, just change type = "latex" in the stargazer function argument, and
-# copy-paste the output in latex
-
-
 # Task 2
 
 #summary(jtrain3)
@@ -154,15 +192,33 @@ kable(TABLE_3, caption = "Table 3") %>%
 # a)
 # another table
 
-Table_4 <- Table_original_function(jtrain3,
+Table_new <- Table_original_function(jtrain3,
                                    vars = c("age","educ","black","hisp","re74","re75"),
                                    treat_var = "train"
 )
+
+colnames(Table_new) <- paste0(colnames(Table_new), "_jtrain3")
+Extended_Table_1 <- cbind(Table_1, Table_new)
+
 
 stargazer(Table_4, summary = FALSE, type = "text", rownames = TRUE)
 
 kable(Table_4, caption = "Table 4") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped","condensed"))
+
+# Comment
+# Table four includes, side by side, the contents of Table 1 and the
+# data from running the same analysis on jtrain3.
+# Note that all jtrain3 covariates are less balanced than the ones in the RCT sample.
+# For example, there is a 9 years difference in the average age of units across treatment
+# groups; blacks still constitute 85% of the treatment group, though the new control group
+# has only 25% black units.
+# The new control units also tend to have much higher baseline real earnings in
+# years 1974 and 1975 (roughly $19,000 compared to $1,267-$2,107). This is especially stark, 
+# suggesting that the treated and control populations are fundamentally different.
+# For this reason, we can state that jtrain3's control group is far less balanced than 
+# the RCT control group, as non-experimental controls look nothing like the treated group
+# on observables and probably unobservable, too.
 
 # b)
 # new nonsense treatment (called treated)
@@ -189,6 +245,15 @@ treated_2 <- treatment_assign(
   missfits = "global",
   seed = "888888",
 )
+
+jtrain3$treated_2 <- treated_2$data[,3]
+
+# Comment:
+# Is the correlation between 'treated' and 'treated_2' statistically significant?
+cor(jtrain3$treated, jtrain3$treated_2)
+# The correlation is -0.0228, which is unsurprisingly low, given that both treatments
+# are assigned randomly and independently of both data and each other.
+
 # d)
 # appending Table_1
 
@@ -204,7 +269,18 @@ stargazer(Table_6, summary = FALSE, type = "text", rownames = TRUE)
 kable(Table_6, caption = "Table 6") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped","condensed"))
 
-# COMMENT TO BE ADDED
+# Comment
+# What do you find corresponds to your expectations?
+# The problem with the jtrain3 dataset, as stated earlier, is (i) that
+# the non-experimental, jtrain3 control group has no relation with the units
+# in the control group, and (ii) that the original treatment ( variable 'train') 
+# is not randomly assigned.
+# By randomly re-assigning treatment to the jtrain3 dataset, we obtain, as 
+# expected, a much more balanced set of covariates.
+# For example, the age gap, the ethnicity composition gap and the real earnings 
+# gap in both baseline years are now gone (see table).
+# The downside, naturally, is that the new treatment group has no economic interpretation,
+# it is merely a coin-flip.
 
 # e)
 # appending Table_2 using "treated" treatment variable
@@ -248,9 +324,11 @@ stargazer(TABLE_7, summary = FALSE, type = "text", rownames = TRUE)
 kable(TABLE_7, caption = "Table 7") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped","condensed"))
 
-# COMMENT TO BE ADDED
-# comment: since the treated var we are using is nonsense, evidently the treated/control
-# ratio is insane: it has no relation at all with the actual treatment
+# Comment:
+# Comment on what you find. Is it what you expected?
+# The treated/control ratio has no relation at all with the actual treatment;
+# the coefficients obtained by the new regressions are, expectedly, statistically
+# insignificant, as can be surmised by the high p-values.
 
 # f)
 # appending Table_2 using "train" treatment variable
@@ -301,4 +379,18 @@ kable(TABLE_8, caption = "Table 8") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped","condensed"))
 
 
-# COMMENT TO BE ADDED
+# Comment:
+# Comment on what you find. Is it what you expected? Are your results sensitive
+# to the introduction of covariates?
+# The interpretation of each new regression is interesting:
+# Regressing re78 on train (Reg_ff1) yields a strongly negative coefficient. This is
+# entirely a byproduct of the fact that individuals in the jtrain3 control group
+# earn significantly more than those in the original RCT treatment group. Then, there 
+# is no causal content, though the p-value indicates strong significance.
+# Regressing re78 on treatment, given the first set of controls (Reg_ff2) 
+# does not eliminate the bias.
+# Further adding re74 and re75 further reduces the bias, but the analysis is still
+# completely unable to recover the RCT coefficient (1.794). Also note that the 
+# associated p-value is 0.8.
+# In conclusion, the non-experimental dataset is unable to recover the original
+# effects, and incapable of offering causal interpretations of any measure.
