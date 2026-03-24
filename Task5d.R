@@ -45,8 +45,8 @@ modelsummary(
 
 # redoing reg_3 with dfbeta
 
-inflm_reg <- influence.measures(regs[[3]]) # first subtask
-influence_train <- inflm_reg$infmat[,"dfb.tran"] # no idea why its called that
+inflm_reg <- influence.measures(regs[[3]])
+influence_train <- inflm_reg$infmat[,"dfb.tran"]
 
 # second subtask (rerun regression)
 subsample_maker <- function( dc, x = influence_train) {
