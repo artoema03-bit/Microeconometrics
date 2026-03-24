@@ -10,11 +10,16 @@
 #
 # y_i (D = 1) = y_i (D = 0) for all i = 1, 2, ...
 #
-# Note that it's  different from testing a null average treatment effect: the goal
-# is to obtain the distribution of our test statistic, and evaluate whether out
-# actual observed value is extreme with respect to it.
+# Note that it's  different from testing a null average treatment effect: 
+# The sharp null is stronger: it requires every individual's treatment effect
+# to be zero, i.e. Y_i(0) = Y_i(1) for all i, rather than just requiring
+# individual effects to cancel out on average. Rejecting it means concluding
+# that at least one unit's outcome was affected by treatment.
 # In particular, to obtain this distribution, we ought to compute the same test
-# statistic for each possible permutation for the treatment vector.
+# statistic for each possible permutation for the treatment vector. If the 
+# sharp null were true for every unit, then relabeling who got treated shouldn't
+# matter; otherwise, the observed statistic should occupy an extreme position in the
+# null distribution.
 
 
 # Recreate p-value in Athey & Imbens (4.1)
@@ -41,7 +46,14 @@ null_dist <- replicate(1000, {
 p_value <- mean(abs(null_dist) >= abs(obs_effect))
 print(paste("Randomization Inference p-value (diff in means):", round(p_value, 6)))
 
-# Our result perfectly coincides with the one presented in Athey & Imbens
+# Athey & Imbens present a p-value of 0.0044, which differs from our own result 
+# of 0.001.
+# Such a difference is not necessarily problematic, as resampling the treatment 
+# variable N times evidently produces a random realization of the distribution itself.
+# Mechanically, this also depends on the choice of seed in the code.
+# Then, different researchers will obtain different p-values simply due to sampling
+# variation in the permutation draws.
+
 
 # b) Using difference in ranks statistic
 
@@ -62,6 +74,7 @@ observed_effect <- mean(y_hat[jtrain2$train == 1] - y_hat[jtrain2$train == 0])
 
 
 # new perm distro
+set.seed(88888)
 null_distro <- replicate(1000, {
   permy <- sample(jtrain2$train)
   mean(y_hat[permy == 1] - y_hat[permy == 0])
@@ -74,9 +87,5 @@ print(paste("Randomization Inference p-value (diff in ranks):", round(new_p_valu
 # The rank statistic compresses outliers and extreme values, which, as established in
 # task 2, are relevant in our data. Given the relevant paper's result of 0.01,
 # our p-value is slightly different, 
-# Such a difference is not necessarily problematic, as resampling the treatment 
-# variable N times evidently produces a random realization of the distribution itself. 
-# Then, different researchers will obtain different p-values simply due to sampling
-# variation in the permutation draws.
 # In our case, both results fall below the 5% significance level, allowing us to 
 # determine that the slight difference does not influence the conclusion.
