@@ -16,12 +16,13 @@ source("./setup.R")
 
 lasso_1 <- rlasso(re78 ~ age + educ + black + hisp + re74 + re75, data = jtrain2)
 
+
 names ( coef ( lasso_1 ))[ coef ( lasso_1 ) != 0]
 summary(lasso_1)
 
 regression_pl1 <- lm(re78 ~ train, data = jtrain2)
 
-summary(regression_pl1)
+summary(regression_pl1) 
 
 # The estimated treatment effect is approximately 1.79 and is statistically
 # significant at the 1% level. This suggests that participation in the training
@@ -60,14 +61,25 @@ regression_ds <- rlassoEffect(x = u, y = jtrain2$re78, d = jtrain2$train,
 summary(regression_ds)
 
 lasso_2 <- rlasso(train ~ age + educ + black + hisp + re74 + re75, data = jtrain2)
-
-names ( coef ( lasso_2 ))[ coef ( lasso_2 ) != 0]
-
-summary(lasso_2)
+summary(lasso_2) 
 
 # Leading to once again 
-
 regression_pl1 <- lm(re78 ~ train, data = jtrain2) 
+summary(regression_pl1)
+
+# OR
+S_D1 <- which ( coef (lasso_2)[ -1] != 0)
+names ( coef ( lasso_2 ))[ coef ( lasso_2 ) != 0]
+
+S_Y1 <- which ( coef (lasso_1)[ -1] != 0)
+names ( coef ( lasso_1))[ coef ( lasso_1 ) != 0]
+
+Lasso_Union1 <- union(S_Y1, S_D1)
+cat (" Union :", colnames (u)[Lasso_Union1 ], "\n")
+X_final1 <- cbind(jtrain2$train, u [, Lasso_Union1 ])
+
+colnames(X_final1) [1] <- " train "
+summary (lm(jtrain2$re78 ~ X_final1 ))
 
 # The double selection estimator gives us a treatment effect of 1.794 with a 
 # standard error of 0.670, which is statistically significant at the 1% level.
@@ -121,10 +133,17 @@ colnames(X_final) [1] <- " train "
 summary (lm(jtrain2$re78 ~ X_final ))
 
 # The coefficient falls from the original 1.79 to 1.59, and becomes significant 
-# not at the 1% but at the 5% level.This time, Lasso selects several variables that were previously omitted, because 
-# the greater level of controls allows for previously missed nonlinearity (expand on this)
-# Further it suggests that the reduction in the treatment effect suggests that 
-# part of the effect estimated in (a) and (b1) was driven by omitted variable bias.
+# not at the 1% but at the 5% level.This time, Lasso selects several variables 
+# that were previously omitted, because the greater level of controls allows 
+# for previously missed nonlinearity (expand on this)
+# Further it suggests that the reduction in the treatment effect estimated in 
+# (a) and (b1) was driven by omitted variable bias.
+# Moreover, the standard error increases relative to the naive OLS after selection 
+# (e.g. 0.656 vs 0.610), reflecting the fact that the double selection procedure 
+# accounts for the uncertainty introduced by variable selection. In contrast, manual 
+# OLS treats the selected controls as fixed and ignores that they were chosen from 
+# the data, leading to overly optimistic (downward biased) standard errors.
+
 # This helps validate that compared to the naive post-Lasso approach in part 
 # (a), which selects controls only based on their predictive power for the outcome, 
 # the double selection procedure ensures that variables relevant for treatment 
@@ -135,7 +154,7 @@ summary (lm(jtrain2$re78 ~ X_final ))
 # significantly predict treatment assignment.For example, the interaction factor(age)31:factor(educ)10 is selected in the
 # treatment equation, implying that individuals with this specific combination
 # of age and education are more or less likely to participate in the program
-# than others. This shows that treatment assignment is not fully random but varies
+# than others. This shows that treatment assignment is not entirely independent of observables but varies
 # across demographic subgroups. This shows that the treatment and control groups
 # are not fully balanced once nonlinearities are taken into account. 
 # As such failing to control for this would lead to biased estimates of the treatment effect. 
