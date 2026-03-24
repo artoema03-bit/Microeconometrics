@@ -12,7 +12,6 @@ setwd(output_dir)
 source("./setup.R")
 
 # Task 3
- 
 #a)
 
 lasso_1 <- rlasso(re78 ~ age + educ + black + hisp + re74 + re75, data = jtrain2)
@@ -20,9 +19,9 @@ lasso_1 <- rlasso(re78 ~ age + educ + black + hisp + re74 + re75, data = jtrain2
 names ( coef ( lasso_1 ))[ coef ( lasso_1 ) != 0]
 summary(lasso_1)
 
-regression_postlasso <- lm(re78 ~ train, data = jtrain2)
-#Change name above 
-summary(regression_postlasso)
+regression_pl1 <- lm(re78 ~ train, data = jtrain2)
+
+summary(regression_pl1)
 
 # The estimated treatment effect is approximately 1.79 and is statistically
 # significant at the 1% level. This suggests that participation in the training
@@ -68,10 +67,8 @@ summary(lasso_2)
 
 # Leading to once again 
 
-lm(re78 ~ train, data = jtrain2) 
+regression_pl1 <- lm(re78 ~ train, data = jtrain2) 
 
-
-# COMMENT: 
 # The double selection estimator gives us a treatment effect of 1.794 with a 
 # standard error of 0.670, which is statistically significant at the 1% level.
 # The estimate is identical to the one obtained in part (a). 
@@ -85,7 +82,6 @@ lm(re78 ~ train, data = jtrain2)
 # are strong predictors of  participation in the training program. 
 # This provides no evidence of substantial imbalance in
 # these observables between the treatment and control groups.
-
 
 #(2)
 #Dummy Variable Creation
@@ -118,7 +114,6 @@ S_D <- which ( coef (lasso_4)[ -1] != 0)
 
 names ( coef ( lasso_4 ))[ coef ( lasso_4 ) != 0]
 
-
 Lasso_Union <- union(S_Y, S_D)
 cat (" Union :", colnames (u2)[Lasso_Union ], "\n")
 X_final <- cbind(jtrain2$train, u2 [, Lasso_Union ])
@@ -126,27 +121,21 @@ colnames(X_final) [1] <- " train "
 summary (lm(jtrain2$re78 ~ X_final ))
 
 # The coefficient falls from the original 1.79 to 1.59, and becomes significant 
-# not at the 1% but at the 5% level. 
-# This time, Lasso selects several variables that were previously omitted, because 
+# not at the 1% but at the 5% level.This time, Lasso selects several variables that were previously omitted, because 
 # the greater level of controls allows for previously missed nonlinearity (expand on this)
-
 # Further it suggests that the reduction in the treatment effect suggests that 
 # part of the effect estimated in (a) and (b1) was driven by omitted variable bias.
 # This helps validate that compared to the naive post-Lasso approach in part 
 # (a), which selects controls only based on their predictive power for the outcome, 
-# the double selection procedure ensures that variables relevant 
-# for treatment assignment are also included. This makes the estimator more robust.
-
+# the double selection procedure ensures that variables relevant for treatment 
+# assignment are also included. This makes the estimator more robust.
 # Concretely, The selection of several age and age–education interaction terms in the treatment 
 # equation indicates that participation in the training program depends on specific 
 # demographic characteristics. In particular, certain combinations of age and education 
-# significantly predict treatment assignment. 
-
-# For example, the interaction factor(age)31:factor(educ)10 is selected in the
+# significantly predict treatment assignment.For example, the interaction factor(age)31:factor(educ)10 is selected in the
 # treatment equation, implying that individuals with this specific combination
 # of age and education are more or less likely to participate in the program
 # than others. This shows that treatment assignment is not fully random but varies
-# across demographic subgroups.
-
-# This shows that the treatment and control groups are not fully balanced once nonlinearities are taken into account. 
+# across demographic subgroups. This shows that the treatment and control groups
+# are not fully balanced once nonlinearities are taken into account. 
 # As such failing to control for this would lead to biased estimates of the treatment effect. 
