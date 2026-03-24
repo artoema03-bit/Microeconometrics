@@ -333,19 +333,17 @@ regression_pl1 <- lm(re78 ~ train, data = jtrain2)
 
 summary(regression_pl1)
 
-# The estimated treatment effect is approximately 1.79 and is statistically
-# significant at the 1% level. This suggests a positive estimated treatment effect on 1978 earnings.
+# The estimated treatment effect is approximately 1.79 and is statistically significant at the 1% level.
+# This suggests a positive estimated treatment effect on 1978 earnings.
 
 # However, since no covariates are included in the regression, this estimate
 # corresponds to a simple difference-in-means between treated and control groups.
 
 # The Lasso selected 0 covariates in the outcome equation; all coefficients were shrunk to zero.
 # This indicates that, in this specification and given the penalty parameter, none of the covariates
-# (age, educ, black, hisp, re74, re75) were selected as sufficient predictors for earnings
-# (re78).
+# (age, educ, black, hisp, re74, re75) were selected as sufficient predictors for earnings (re78).
 
-# The main issue with this approach is that Lasso performs variable selection only in the outcome equation,
-# which can fail to provide valid inference.
+# The main issue with this approach is that Lasso performs variable selection only in the outcome equation, which can fail to provide valid inference.
 # A variable may be weakly related to re78, and be excluded by the naive Lasso approach, but be strongly related to treatment assignment.
 # Although generally omitting relevant controls may bias estimates, for us causal identification is not threatened as treatment is randomized.
 # However, naive post-Lasso inference does become invalid as it ignores model-selection mistakes and treats the selected model as fixed.
@@ -385,14 +383,13 @@ X_final1 <- cbind(jtrain2$train, u [, Lasso_Union1 ])
 colnames(X_final1) [1] <- " train "
 summary (lm(jtrain2$re78 ~ X_final1 ))
 
-# The double selection estimator gives us a treatment effect of 1.794 with a
-# standard error of 0.670, which is statistically significant at the 1% level.
+# The double selection estimator gives us a treatment effect of 1.794 with a standard error of 0.670,
+# which is statistically significant at the 1% level.
 # The estimate is identical to the one obtained in part (a).
 
-# The reason for this is that Lasso selects no covariates in either the outcome equation
-# or the treatment equation. Therefore, the double selection procedure includes
-# no additional controls, so the final estimator reduces to the same regression
-# of re78 on train only.
+# The reason for this is that Lasso selects no covariates in either the outcome equation or the treatment equation.
+# Therefore, the double selection procedure includes no additional controls,
+# so the final estimator reduces to the same regression of re78 on train only.
 
 # This suggests that, within this linear specification and penalty, the observed characteristics
 # are weak predictors of participation in the training program and the outcome.
@@ -423,28 +420,23 @@ X_final <- cbind(jtrain2$train, u2 [, Lasso_Union ])
 colnames(X_final) [1] <- " train "
 summary (lm(jtrain2$re78 ~ X_final ))
 
-# The coefficient falls from the original 1.79 to 1.59, and becomes significant
-# not at the 1% but at the 5% level. This time, Lasso selects several variables
-# that were previously omitted, because the richer set of controls allows
+# The coefficient falls from the original 1.79 to 1.59, and becomes significant not at the 1% but at the 5% level.
+# This time, Lasso selects several variables that were previously omitted, because the richer set of controls allows
 # for previously excluded nonlinearities and interactions.
-# Further, it suggests that the reduction in the treatment effect estimated in
-# (a) and (b1) did not fully account for relevant nonlinear functions of observables,
+# Further, it suggests that the reduction in the treatment effect estimated in (a) and (b1) did not fully account for relevant nonlinear functions of observables,
 # which lowers the estimated treatment effect after inclusion.
-# Moreover, the standard error increases relative to the naive OLS after selection
-# (e.g. 0.656 vs 0.610), reflecting the fact that the double selection procedure
-# is designed to deliver valid inference after model selection. In contrast, manual
-# OLS treats the selected controls as fixed and ignores that they were chosen from
-# the data, leading to overly optimistic (downward biased) standard errors.
+# Moreover, the standard error increases relative to the naive OLS after selection (e.g. 0.656 vs 0.610),
+# reflecting the fact that the double selection procedure is designed to deliver valid inference after model selection.
+# In contrast, regular OLS treats the selected controls as fixed and ignores that they were chosen from the data,
+# leading to overly optimistic (downward biased) standard errors.
 
-# This helps validate that compared to the naive post-Lasso approach in part (a),
-# which selects controls only based on their predictive power for the outcome,
+# This helps validate that compared to the naive post-Lasso approach in part (a), which selects controls only based on their predictive power for the outcome,
 # the double selection procedure helps ensure that variables relevant for treatment assignment are also included.
 # This makes the estimator more robust to imperfect model selection.
 # Concretely, the selection of several age and age-education interaction terms in the treatment equation indicates that treatment assignment,
 # in this sample, is statistically related to specific demographic characteristics.
 # These imbalances between treatment and control units could be considered to be due to chance as the underlying assignment was randomized.
 # Failing to control for this does not invalidate causal identification but can make post-selection inference unreliable.
-
 
 # Task 4
 
@@ -626,20 +618,14 @@ saveWorkbook(as_Workbook(TABLE_3), "out/PS1_Q4.xlsx", overwrite = TRUE)
 
 # a)
 
-# For the unbiasedness of the Neyman difference-in-means estimator,
-# the key condition is that, in a completely randomized experiment, treatment assignment is
-# independent from the potential outcomes D⊥(Y(0),Y(1)).
-# This follows from randomization and ensures that, on average,
-# treated and control groups are comparable.
-# The Neyman framework assumes that randomness comes only from the
-# assignment of treatment and control groups.
-# Thus, if an experiment were repeated, the assignment would change,
-# while the individuals’ potential outcomes would remain fixed.
-# Additionally, SUTVA must hold, requiring no interference between units
-# whereby the potential outcome for any unit does not vary with the treatments
-# assigned to other units, and also no hidden treatments.
-# Under these conditions, the treatment and control groups are balanced in expectation
-# in terms of potential outcomes over repeated assignments,
+# For the unbiasedness of the Neyman difference-in-means estimator, the key condition is that, in a completely randomized experiment,
+# treatment assignment is independent from the potential outcomes D⊥(Y(0),Y(1)).
+# This follows from randomization and ensures that, on average, treated and control groups are comparable.
+# The Neyman framework assumes that randomness comes only from the assignment of treatment and control groups.
+# Thus, if an experiment were repeated, the assignment would change, while the individuals’ potential outcomes would remain fixed.
+# Additionally, SUTVA must hold, requiring no interference between units whereby the potential outcome for any unit does not vary
+# with the treatments assigned to other units, and also no hidden treatments.
+# Under these conditions, the treatment and control groups are balanced in expectation in terms of potential outcomes over repeated assignments,
 # so the difference in sample means provides an unbiased estimator of the sample average treatment effect.
 
 # On the unbiasedness of the Neyman variance estimator, the true variance of the difference-in-means estimator in the Neyman framework is:
@@ -650,12 +636,10 @@ saveWorkbook(as_Workbook(TABLE_3), "out/PS1_Q4.xlsx", overwrite = TRUE)
 # S0^2    = variance of Y_i(0)
 # S_tau^2 = variance of individual treatment effects (Y_i(1) - Y_i(0))
 
-# We can say that, because we never observe both potential outcomes Y_i(0) and
-# Y_i(1) for the same unit, the variance of individual treatment effects Yi(1)−Yi(0) (S_tau^2)
-# cannot be estimated when we have heterogeneous treatment effects. As a result,
-# the Neyman variance estimator omits this term, leading to a conservative
-# (weakly upward-biased) estimate of the variance. The issue arises because, in the
-# finite-population framework, we never observe both potential outcomes for the same individuals and therefore
+# We can say that, because we never observe both potential outcomes Y_i(0) and Y_i(1) for the same unit,
+# the variance of individual treatment effects Yi(1)−Yi(0) (S_tau^2) cannot be estimated when we have heterogeneous treatment effects.
+# As a result, the Neyman variance estimator omits this term, leading to a conservative (weakly upward-biased) estimate of the variance.
+# The issue arises because, in the finite-population framework, we never observe both potential outcomes for the same individuals and therefore
 # cannot identify the variance of individual treatment effects.
 # So, heterogeneity in individual treatment effects appears as missing information.
 
@@ -667,43 +651,37 @@ saveWorkbook(as_Workbook(TABLE_3), "out/PS1_Q4.xlsx", overwrite = TRUE)
 # then the variance estimator is unbiased when τ_hat is used to estimate the population average treatment effect
 # E[Y_i(1) - Y_i(0)], rather than the average treatment effect for the specific sample, (1/N) * sum_i (Y_i(1) - Y_i(0))."
 
-# Changing from a finite sample to a super-population perspective shifts uncertainty
-# from missing information to sampling variation, which in turn changes how we
-# interpret the variance estimator. Since the variance of τ_hat determines
-# standard errors and confidence intervals, correctly specifying it is crucial
-# for valid inference, even if the estimator of the ATE itself is unbiased.
+# Changing from a finite sample to a super-population perspective shifts uncertainty from missing information to sampling variation,
+# which in turn changes how we interpret the variance estimator.
+# Since the variance of τ_hat determines standard errors and confidence intervals,
+# correctly specifying it is crucial for valid inference, even if the estimator of the ATE itself is unbiased.
 
 # b)
 
 # Describe Fisher's inference
-# Per Heß(2017), "Fisherian randomization inference produces the distribution of
-# a test statistic under a designated null hypothesis, allowing a researcher to
-# assess whether the actually observed realization of the statistic is “extreme”
+# Per Heß(2017), "Fisherian randomization inference produces the distribution of a test statistic under a designated null hypothesis,
+# allowing a researcher to assess whether the actually observed realization of the statistic is “extreme”
 # and hence whether the null hypothesis has to be rejected".
-# One of the most common statistics to test is the coefficient estimate, which we
-# found to be 1.794 in task 1. It is obtained by comparing the mean value of the
-# outcome of interest across groups.
+# One of the most common statistics to test is the coefficient estimate, which we found to be 1.794 in task 1.
+# It is obtained by comparing the mean value of the outcome of interest across groups.
 # The null hypothesis consists in a sharp hypothesis of a zero treatment effect, ie:
-#
+
 # y_i (D = 1) = y_i (D = 0) for all i = 1, 2, ...
-#
-# Note that it's  different from testing a null average treatment effect:
-# The sharp null is stronger: it requires every individual's treatment effect
-# to be zero, i.e. Y_i(0) = Y_i(1) for all i, rather than just requiring
-# individual effects to cancel out on average. Rejecting it means concluding
-# that at least one unit's outcome was affected by treatment.
-# In particular, to obtain this distribution, we ought to compute the same test
-# statistic for each possible permutation for the treatment vector. If the
-# sharp null were true for every unit, then relabeling who got treated shouldn't
-# matter; otherwise, the observed statistic should occupy an extreme position in the
-# null distribution.
+
+# Note that it's different from testing a null average treatment effect as the sharp null is stronger:
+# it requires every individual's treatment effect to be zero, i.e. Y_i(0) = Y_i(1) for all i,
+# rather than just requiring individual effects to cancel out on average.
+# Rejecting it means concluding that at least one unit's outcome was affected by treatment.
+# In particular, to obtain this distribution, we ought to compute the same test statistic for each possible permutation for the treatment vector.
+# If the sharp null were true for every unit, then relabeling who got treated should not matter;
+# otherwise, the observed statistic should occupy an extreme position in the null distribution.
 
 
 # Recreate p-value in Athey & Imbens (4.1)
 
 # 1) Using difference in means statistic
 
-# To get the diff. in means estimate, We could equivalently do
+# To get the difference-in-means estimate, we could equivalently do
 # y <- regression <- lm(re78 ~ train, data = jtrain2))
 # alpha <- coefficients(regression)["train"]
 
@@ -724,8 +702,7 @@ p_value <- mean(abs(null_dist) >= abs(obs_effect))
 print(paste("Randomization Inference p-value (diff in means):", round(p_value, 6)))
 
 # Athey & Imbens present a p-value of 0.0044, which is similar to our result of 0.00407.
-# The slight difference is not necessarily problematic, and may have arise due to variation from
-# randomly sampled assignments.
+# The slight difference is not necessarily problematic, and may have arise due to variation from randomly sampled assignments.
 # Increasing the number of permutations even more would be likely to bring the results closer.
 # Mechanically, there is also dependence on the choice of the seed.
 
@@ -758,58 +735,45 @@ null_distro <- replicate(100000, {
 new_p_value <- mean(abs(null_distro) >= abs(observed_effect))
 print(paste("Randomization Inference p-value (diff in ranks):", round(new_p_value, 6)))
 
-# The rank statistic compresses outliers and extreme values, which, as established in
-# task 2, are relevant in our data. Given the relevant paper's result of 0.01, our p-value of 0.01132 is slightly different,
+# The rank statistic compresses outliers and extreme values, which, as established in task 2, are relevant in our data.
+# Given the relevant paper's result of 0.01, our p-value of 0.01132 is slightly different.
 # In our case, both results fall below the 5% significance level, allowing us to determine that the slight difference does not influence the conclusion.
 
 # c)
 
-# Fisherian randomization requires that treatment reshuffling must be conducted
-# only in ways that were possible in the real experiment. Looking at the LaLonde paper,
-# we can see that the experiment was conducted across multiple sites and target groups
+# Fisherian randomization requires that treatment reshuffling must be conducted only in ways that were possible in the real experiment.
+# Looking at the LaLonde paper, we can see that the experiment was conducted across multiple sites and target groups
 # (10 locations, AFDC women, ex-drug addicts, ex-offenders, and young dropouts).
 # Furthermore the paper notes that treatment-control ratios differed across groups.
-# LaLonde explicitly mentions, for example, that for "the young high school target
-# group there were by design more controls than treatments". This suggests that the original
-# assignment may not have necessarily been equivalent to a single completely randomized draw over all individuals.
+# LaLonde explicitly mentions, for example, that for "the young high school target group there were by design more controls than treatments".
+# This suggests that the original assignment may not have necessarily been equivalent to a single completely randomized draw over all individuals.
 
-# Athey and Imbens perform their test by re-assigning treatment while simply
-# keeping the total number of treated and control units fixed (185 and 260,
-# respectively). Despite noting, "In order to calculate the exact p-value we need
-# to know the exact distribution of the assignment vector". More concretely,
-# looking at their own definitions, they treat the experiment as if coming from a completely
-# randomized Experiment rather than a design with site- and group-specific assignment. This
-# assumes every unit in the dataset had an equal probability of being assigned
-# to treatment ignoring possible constraints from the original design. If
-# assignment was conducted within sites or groups, a correct Fisherian test
-# should restrict reshuffling within those strata.
+# Athey and Imbens perform their test by re-assigning treatment while simply keeping the total number of treated and control units fixed
+# (185 and 260, respectively).
+# Despite noting, "In order to calculate the exact p-value we need to know the exact distribution of the assignment vector".
+# More concretely, looking at their own definitions, they treat the experiment as if coming from a completely
+# randomized experiment rather than a design with site- and group-specific assignment.
+# This assumes every unit in the dataset had an equal probability of being assigned to treatment ignoring possible constraints from the original design.
+# If assignment was conducted within sites or groups, a correct Fisherian test should restrict reshuffling within those strata.
 
-# Further there is the potential issue of attrition. Athey and Imbens apply randomization
-# inference to a restricted subsample and not the full originally randomized sample.
+# Further there is the potential issue of attrition.
+# Athey and Imbens apply randomization inference to a restricted subsample and not the full originally randomized sample.
 # More concretely, Athey and Imbens permute 185 treated labels and 260 control labels among a pool of individuals.
-# However, the original dataset from LaLonde consisted of two
-# randomly allocated groups: 297 treated and 425 controls.
-# Additionally, since the Fisher test relies on reshuffling treatment
-# according to the known assignment mechanism, this implies that, under attrition, the assignment
-# rule may no longer correctly describe the observed sample. More specifically,
-# the way treatment is distributed in the observed data is no longer the result
-# of the original randomization alone, but also of a (self-)selection process.
-# As a result, exchangeability between treated and control units may no longer hold
-# and the randomization distribution used for Fisherian inference may no longer reflect
-# the randomization plan of the original experiment.
+# However, the original dataset from LaLonde consisted of two randomly allocated groups: 297 treated and 425 controls.
+# Additionally, since the Fisher test relies on reshuffling treatment according to the known assignment mechanism, this implies that, under attrition,
+# the assignment rule may no longer correctly describe the observed sample.
+# More specifically, the way treatment is distributed in the observed data is no longer the result of the original randomization alone,
+# but also of a (self-)selection process.
+# As a result, exchangeability between treated and control units may no longer hold and
+# the randomization distribution used for Fisherian inference may no longer reflect the randomization plan of the original experiment.
 
-# Concretely, attrition may introduce selection that depends on treatment or outcomes. LaLonde documents that
-# “many participants failed to complete these interviews, and this sample
-# attrition potentially biases the experimental results.” Moreover,
-# response rates differ between treatment and control groups (e.g., 72% vs 68%),
-# indicating that attrition may not be purely random.
-# For example, if high-outcome treated individuals are more likely to remain in the sample,
-# then the observed treatment effect could be inflated. As a result, the
-# reshuffled assignments are unlikely to generate differences as large as the observed one.
+# Concretely, attrition may introduce selection that depends on treatment or outcomes.
+# LaLonde documents that "many participants failed to complete these interviews, and this sample attrition potentially biases the experimental results."
+# Moreover, response rates differ between treatment and control groups (e.g., 72% vs 68%), indicating that attrition may not be purely random.
+# For example, if high-outcome treated individuals are more likely to remain in the sample, then the observed treatment effect could be inflated.
+# As a result, the reshuffled assignments are unlikely to generate differences as large as the observed one.
 # This may lead to a smaller p-value and possible over-rejection of the null hypothesis.
-# More generally, however, the sign of the distortion is ambiguous,
-# depending on how attrition relates to treatment assignment and outcomes.
-
+# More generally, however, the sign of the distortion is ambiguous, depending on how attrition relates to treatment assignment and outcomes.
 
 # d)
 
@@ -855,7 +819,8 @@ saveWorkbook(as_Workbook(TABLE_2_5d2_1d), "out/PS1_Q5d2_1d.xlsx", overwrite = TR
 
 ## 3)
 
-# Bootstrap standard errors are obtained by repeatedly resampling the data with replacement, re-estimating the regression in each resample, and then computing the standard deviation of the estimated coefficients.
+# Bootstrap standard errors are obtained by repeatedly resampling the data with replacement, re-estimating the regression in each resample,
+# and then computing the standard deviation of the estimated coefficients.
 # So, bootstrap approximates the sampling distribution of the estimator directly from repeated resamples.
 # It is easier to do with `sandwich`, the type "xy" is equivalent to calculating SEs from resampled and repeated regressions.
 vcovBS_adj <- \(...) vcovBS(R = 2000, type = "xy", ...)
@@ -901,4 +866,5 @@ saveWorkbook(as_Workbook(TABLE_2_5d3_1d), "out/PS1_Q5d3_1d.xlsx", overwrite = TR
 # In addition, our sample has 445 observations, which is well above the small-sample range emphasized in the post (250 obs.).
 # HC3 can still matter when there are influential or high-leverage observations, because it penalizes those observations more strongly.
 # And the existance of influential observations is something we see in the dfbeta exercise.
-# So, HC3 could be expected to increase the standard errors at least somewhat, and that is exactly what we find: the estimated effect of train remains positive and statistically significant, and only the precision changes slightly.
+# So, HC3 could be expected to increase the standard errors at least somewhat, and that is exactly what we find:
+# the estimated effect of train remains positive and statistically significant, and only the precision changes slightly.
