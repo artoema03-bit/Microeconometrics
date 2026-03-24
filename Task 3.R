@@ -66,7 +66,10 @@ names ( coef ( lasso_2 ))[ coef ( lasso_2 ) != 0]
 
 summary(lasso_2)
 
-# ADD THE REMAING METHODOLOGY FOR THE OLS
+# Leading to once again 
+
+lm(re78 ~ train, data = jtrain2) 
+
 
 # COMMENT: 
 # The double selection estimator gives us a treatment effect of 1.794 with a 

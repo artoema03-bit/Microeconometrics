@@ -9,22 +9,22 @@
 # if an experiment is repeated, would change, while the individuals’ potential 
 # outcomes would be fixed. 
 
-# Lastly, SUTVA must hold, allowing for no interference between units
+# Additionally, SUTVA must hold, allowing for no interference between units
 # whereby the potential outcome for any unit do not vary with the treatments assigned to other units.
 # If these hold, the treatment and control groups are (in expectation) also 
 # balanced in terms of potential outcomes, allowing for the difference in means
 # to recover the ATE.
 
-# Because we never observe both potential outcomes Y_i(0) and Y_i(1) for the same unit,
-# their covariance cannot be estimated.
-# As a result, Neyman’s variance estimator omits this covariance term and is therefore conservative
-# (or upwardly biased).
+# Finally, because we never observe both potential outcomes Y_i(0) and Y_i(1) for the same unit,
+# their covariance cannot be estimated. As such in the formula for the variance for the ATE estimator
+# researchers drop the population variance of the unit-level treatment effects Yi(1) − Yi(0)
+# As a result, researchers using Neyman’s variance estimator omit this term and 
+# it consequently is conservative (or upwardly biased).
+# Assuming that the sample at hand can be viewed as a random sample
+# from an infinite super-population we can get an alternative interpertation. 
+# In a super- population framework, the uncertainty from sampling new units from 
+# the infinite population accounts for the variation between individuals.
 
-# We must hence assume that the sample at hand can be viewed as a random sample
-# from an infinite super-population.In a superpopulation framework, 
-# treatment effect heterogeneity appears as variation across sampled units,
-# which provides an alternative interpretation of the variance.
-# However, in the finite population setting, the conservativeness of Neyman’s variance estimator remains.
 
 ####### Task 5c
 
@@ -57,7 +57,6 @@
 # As such the probability of an individual remaining in this 445-person "survivor" pool is driven
 # by unknown, unobservable factors rather than a controlled randomization process.
 
-# treatments using the exact probability distribution of the original assignment mechanism.
 
 
 
