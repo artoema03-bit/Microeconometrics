@@ -1,10 +1,37 @@
-library(ggplot2)
+# Describe Fisher's inference
+# Per Heß(2017), "Fisherian randomization inference produces the distribution of
+# a test statistic under a designated null hypothesis, allowing a researcher to 
+# assess whether the actually observed realization of the statistic is “extreme” 
+# and hence whether the null hypothesis has to be rejected".
+# One of the most common statistics to test is the coefficient estimate, which we 
+# found to be 1.794 in task 1. It is obtained by comparing the mean value of the
+# outcome of interest across groups.
+# The null hypothesis consists in a sharp hypothesis of a zero treatment effect, ie:
+#
+# y_i (D = 1) = y_i (D = 0) for all i = 1, 2, ...
+#
+# Note that it's  different from testing a null average treatment effect: the goal
+# is to obtain the distribution of our test statistic, and evaluate whether out
+# actual observed value is extreme with respect to it.
+# In particular, to obtain this distribution, we ought to compute the same test
+# statistic for each possible permutation for the treatment vector.
+
+
+# Recreate p-value in Athey & Imbens (4.1)
+
+# a) Using difference in means statistic
+
+# To get the diff. in means estimate, We could equivalently do
+# y <- regression <- lm(re78 ~ train, data = jtrain2))
+# alpha <- coefficients(regression)["train"]
 
 obs_effect <- mean(jtrain2$re78[jtrain2$train == 1]) -
   mean(jtrain2$re78[jtrain2$train == 0])
 print(paste("Observed Treatment Effect:", obs_effect))
 
+
 # Permutation distribution
+set.seed(88888)
 null_dist <- replicate(1000, {
   perm <- sample(jtrain2$train)
   mean(jtrain2$re78[perm == 1]) - mean(jtrain2$re78[perm == 0])
@@ -12,13 +39,44 @@ null_dist <- replicate(1000, {
 
 # Two-sided p-value
 p_value <- mean(abs(null_dist) >= abs(obs_effect))
-print(paste("Randomization Inference p-value:", round(p_value, 6)))
+print(paste("Randomization Inference p-value (diff in means):", round(p_value, 6)))
 
-# Plot null distribution with observed effect
-ggplot(data.frame(effect = null_dist), aes(x = effect)) +
-  geom_histogram(color = "black", fill = "lightblue", bins = 30, alpha = 0.7) +
-  geom_vline(xintercept = obs_effect, color = "red", linetype = "dashed", linewidth = 1) +
-  labs(title = "Randomization Inference Null Distribution",
-       x = "Simulated Treatment Effects",
-       y = "Frequency") +
-  theme_classic()
+# Our result perfectly coincides with the one presented in Athey & Imbens
+
+# b) Using difference in ranks statistic
+
+y <- jtrain2$re78
+R <- numeric(length(y))
+
+compute_R <- function(x) {
+  for (i in 1:length(x)) {
+    first_part <- sum(x < x[i])
+    ties <- sum(x == x[i])
+    R[i]= first_part + 0.5 * (1 + ties) - (length(x)+1)/2
+  }
+  return(R)
+}
+
+y_hat <- compute_R(y)
+observed_effect <- mean(y_hat[jtrain2$train == 1] - y_hat[jtrain2$train == 0])
+
+
+# new perm distro
+null_distro <- replicate(1000, {
+  permy <- sample(jtrain2$train)
+  mean(y_hat[permy == 1] - y_hat[permy == 0])
+})
+
+# two-sided p-value
+new_p_value <- mean(abs(null_distro) >= abs(y_hat))
+print(paste("Randomization Inference p-value (diff in ranks):", round(new_p_value, 6)))
+
+# The rank statistic compresses outliers and extreme values, which, as established in
+# task 2, are relevant in our data. Given the relevant paper's result of 0.01,
+# our p-value is slightly different, 
+# Such a difference is not necessarily problematic, as resampling the treatment 
+# variable N times evidently produces a random realization of the distribution itself. 
+# Then, different researchers will obtain different p-values simply due to sampling
+# variation in the permutation draws.
+# In our case, both results fall below the 5% significance level, allowing us to 
+# determine that the slight difference does not influence the conclusion.
