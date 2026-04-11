@@ -6,7 +6,7 @@ user <- Sys.info()["user"]
 output_dir <- switch(user,
   "ajnik"="G:/Mans disks/zObsidian/04 Courses/20295 Microeconometrics/Problem Sets/microeconometrics-ps",
   "erick"="/home/erick/TEMP/",
-  "pedromiguelcassandra"="/Users/pedrocassandra/Desktop/Bocconi/Microeconometrics/Micro/Microeconometrics",
+  "pedrocassandra"="/Users/pedrocassandra/Desktop/Bocconi/Microeconometrics/Micro/Microeconometrics",
   getwd()
 )
 setwd(output_dir)
