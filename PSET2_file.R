@@ -6,6 +6,7 @@ user <- Sys.info()["user"]
 output_dir <- switch(user,
   "ajnik"="G:/Mans disks/zObsidian/04 Courses/20295 Microeconometrics/Problem Sets/microeconometrics-ps",
   "erick"="/home/erick/TEMP/",
+  "pedromiguelcassandra"="/Users/pedrocassandra/Desktop/Bocconi/Microeconometrics/Micro/Microeconometrics",
   getwd()
 )
 setwd(output_dir)
@@ -15,6 +16,178 @@ source("./setup.R")
 
 # new file for pset2
 
+library (haven)
+library (dplyr)
+library (ggplot2)
+library(writexl)
+library (fixest)
+
 data <- read.csv("files/pset_2.csv", sep = ";",)
 
 summary(data)
+
+#Exercise 1 
+
+# (a) 
+# We must use analytic weights
+# We do so, because the  variable (divorce rate per 1,000 people) is a mean 
+# computed from state-level populations (stpop) of different sizes.
+# Larger states may provide estimates with lower variance, so weighting 
+# by population accounts for heteroskedasticity and ensures that estimates 
+# are representative of the U.S. population.
+
+# Frequency weights are not relevant since the divorce rates are state-year specific
+# so using frequency weight would imply div_rate is the observed at the corresponding
+# stpop number of times, instead of being a mean.
+
+# Probability weights, are necessary when random sampling is involved which rather
+# than the full-population observation as we have in this case
+
+# (b) 
+# (i)
+
+data_1 <- data %>% 
+  mutate (year = as.numeric (year) ,
+          TREATED = as.numeric(lfdivlaw >= 1968 & lfdivlaw <= 1988))
+
+data_coll_1 <- data_1 %>%
+  group_by (year, TREATED) %>%
+  summarise (Y = weighted.mean (div_rate, w = stpop, na.rm = TRUE) ,
+             .groups = "drop" )
+
+ggplot (data_coll_1, aes (x = year , y = Y ,
+                          color = factor (TREATED) ,
+                          linetype = factor (TREATED))) +
+  geom_line () +
+  geom_vline ( xintercept = c(1968, 1988),  linetype = "dashed") +
+  labs (y = "Divorce Rate per 1000 People",
+        title = "Outcome Trends") + 
+  theme_minimal()
+
+# (ii)
+
+data_2 <- data %>% 
+  mutate (year = as.numeric (year) ,
+          TREATED = as.numeric(lfdivlaw >= 1969 & lfdivlaw <= 1973))
+
+data_2 <- data_2 %>%
+  filter((lfdivlaw == 2000 | (lfdivlaw >= 1968 & lfdivlaw <= 1988)) & year <= 1978) %>%
+  group_by (year , TREATED) %>%
+  summarise (Y = weighted.mean (div_rate, w = stpop, na.rm = TRUE) ,
+             .groups = "drop" )
+
+
+ggplot (data_2, aes ( x = year , y = Y ,
+                      color = factor (TREATED ) ,
+                      linetype = factor ( TREATED ) ) ) +
+  geom_line () +
+  geom_vline ( xintercept = c(1968, 1969),  linetype = "dashed") +
+  labs (y = "Divorce Rate per 1000 People",
+        title = "Outcome Trends") + 
+  theme_minimal()
+
+
+# Do your results support the assumption of parallel trends?
+# The graphs support the parallel trends assumption. Concretely, despite consistent higher divorce rates,
+# the evolution of treated states before the reform (for more than two periods) appears to be very similar to that 
+# of the control group. This, suggests that in the absence of treatment, both groups would have likely followed parallel paths. 
+
+# Return to this 
+
+# (c)
+
+data_3 <- data %>%
+  filter((lfdivlaw == 2000 | (lfdivlaw >= 1968 & lfdivlaw <= 1988)) & year %in% c(1968, 1978)) %>%
+  mutate (year = as.numeric (year),
+          UNILATERAL = as.numeric(lfdivlaw >= 1969 & lfdivlaw <= 1973),
+          POST = as.numeric(year == 1978),
+          POST_UNILATERAL = (POST*UNILATERAL))
+
+# (i)
+
+regression_1 <- lm(div_rate ~ POST_UNILATERAL + POST, data = data_3, weights = data_3$stpop)
+summary(regression_1)
+
+# (ii)
+
+did_1 <- lm(div_rate ~ factor (POST)*factor (UNILATERAL), data = data_3, weights = data_3$stpop)
+summary (did_1)
+
+#DiD by hand
+#Need to Add weights 
+#means <- aggregate(div_rate ~ UNILATERAL + POST, data_3, mean)
+#did_2 <- ( means $div_rate[means$UNILATERAL==1 & means$POST ==1]   -
+#           means$div_rate[means$UNILATERAL==1 & means$POST==0]) -
+#  (means$div_rate[means$UNILATERAL==0 & means$POST ==1]  -
+#      means$div_rate[means$UNILATERAL==0 & means $ POST==0])
+# print (did_2)
+
+# Comment 
+
+# (d)
+
+data_3 <- na.omit(data_3)
+
+means2 <- data_3 %>%
+  group_by(UNILATERAL, POST) %>%
+  summarise(avg = weighted.mean(div_rate, w = stpop), .groups = "drop")
+
+m00 <- means2$avg [means2$UNILATERAL==0 & means2$POST==0]
+m01 <- means2$avg [means2$UNILATERAL==0 & means2$POST==1]
+m10 <- means2$avg [means2$UNILATERAL==1 & means2$POST==0]
+m11 <- means2$avg [means2$UNILATERAL==1 & means2$POST==1]
+
+diff_treated <- m11 - m10
+diff_control <- m01 - m00
+diff_post <- m11 - m01
+diff_pre <- m10 - m00
+did_3 <- (m11 - m10) - (m01 - m00)
+
+did_mat <- matrix (c(m11, m01, diff_post, m10, m00, diff_pre, diff_treated, diff_control, did_3),
+                   nrow = 3, byrow = TRUE)
+rownames(did_mat) <- c("POST=1", "POST=0", "Difference 1")
+colnames(did_mat) <- c("UNILATERAL=1", "UNILATERAL=0", "Difference 2")
+
+print (did_mat) 
+
+did_mat_xlsx <- as.data.frame(did_mat)
+did_mat_xlsx <- cbind(Group = rownames(did_mat_xlsx), did_mat_xlsx)
+
+write_xlsx(did_mat_xlsx, "TABLE_1.xlsx")
+
+# (e)
+
+data_4 <- data %>% 
+  mutate (year = as.numeric (year),
+          IMP_UNILATERAL = as.numeric(year >= lfdivlaw))%>%
+  filter(year>=1956 & year<=1988)
+
+# (i)
+
+regression_2 <- feols(div_rate ~ IMP_UNILATERAL | st + year,
+                      cluster = "st", data = data_4, weights = data_4$stpop)
+
+summary (regression_2)
+
+# (ii)
+
+regression_3 <- feols(div_rate ~ IMP_UNILATERAL | st + year +
+                        st[year], cluster = "st", data = data_4, weights = data_4$stpop)
+
+summary(regression_3)
+
+# (iii)
+
+data_4$year2 <- data_4$year^2 
+regression_4 <- feols(div_rate ~IMP_UNILATERAL | st + year + st[year] + st[year2], 
+                      cluster = "st", data=data_4, weights = data_4$stpop)
+summary(regression_4)
+
+# All regressions match with table A1 of appendix 
+# Comments 
+
+
+
+
+
+
