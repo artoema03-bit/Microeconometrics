@@ -122,7 +122,21 @@ summary (did_1)
 #      means$div_rate[means$UNILATERAL==0 & means $ POST==0])
 # print (did_2)
 
-# Comment 
+#  The pooled OLS regression (i) shows that treated states are associated with 
+#1.55 more divorces per 1,000 people compared to the control states. This is 
+#statistically significant to the 0.1% level- The full DiD specification (ii), 
+# shows the interaction term POSTxUNILATERAL as non-statistically significant 
+# impact of the treatment on divorce rates. Including the UNILATERAL regressor,
+# allows for the capturing of the differences between treatment and control
+# groups before the treatment, which was not accounted for the in the pooled OLS
+# in question (i) causing the difference between the two regressions.
+# The graphs done before support this idea, control groups and treatment group 
+# follow similar trends. Further, after reforms, both groups have an increase in 
+# divorce rates per 1000 people, and the gap between the two does not seem to
+# widen; Rather the two move in parallel, explaining the low, non-significant 
+# DiD estimate in the second specification. Highligthing that the estimated 
+# coefficient that arose from the pooled OLS was biased because it was not considering 
+# baseline differences. 
 
 # (d)
 
@@ -184,10 +198,18 @@ regression_4 <- feols(div_rate ~IMP_UNILATERAL | st + year + st[year] + st[year2
 summary(regression_4)
 
 # All regressions match with table A1 of appendix 
-# Comments 
 
-
-
-
-
-
+# Regression i), which assumes strict parallell trends between control and
+# treatment groups has a coefficient of  -0.054838 which is not  statistically significant 
+# Regression ii) has a coefficient of  0.476568 which is significant at the 5% level 
+# Regression iii) has a coefficient of  0.334415  significant at 5% level
+# The latter two allow for state-specific linear and quadratic trends and are 
+# testing whether the baseline results are robust to differential pre-existing 
+# trajectories across states. If the parallel-trends assumption holds, the
+# coefficient should be similar as the one estimated without including the 
+# linear/quadratic trends. However as noted the differences in coefficients across 
+# regressions, especially the first one agains the latter two, suggests that treated 
+# and control groups may have different trends priot to treatment.  This indicates
+# that the baseline regression may be biased, and that part of the effect captured 
+# in regressions ii and iii) may be derived not from the treatment effect but 
+# from the inclusion of group-specific trends. 
