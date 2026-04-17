@@ -136,20 +136,29 @@ ggplot(bacon_output, aes(x = weight, y = estimate, color = type)) +
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(
     x = "Weight",
-    y = "2x2 DID estimate",
+    y = "2x2 DD estimate",
     color = "Comparison type",
     title = "Goodman-Bacon decomposition"
   ) +
+  geom_hline(yintercept = -0.174113, color = "red")+
+  annotate("text", x = .20, y = -.3, label = "DD estimate = -0.17", color = "red")+
+  coord_cartesian(xlim = c(0, 0.25))
   theme_classic()
 
-# The weighted mean of these estimates would be exactly the same as our earlier (naive) 
-# TWFE coefficient estimate, recalling that the regression must be unweighted and 
-# run on the same balanced sample that bacon runs on.
+# The weighted mean of these estimates should be exactly the same as our earlier (naive) 
+# TWFE coefficient estimate. This is not exactly the case because of two reasons:
+# first, the bacon model is unweighted; second, it runs on a balanced sample.
 
-# Discussion on Goodman-Bacon
+# Goodman-Bacon (2021) show that "the TWFE DiD estimator is a weighted average of all 
+# possible 2x2 estimators that compare timing groups to each other. Some use units treated 
+# at a particular time as the treatment group and untreted units as the control group.
+# Some compare units treated at two different times, using the later group as a control 
+# before its treatment begins and then the earlier group as a control after its treatment begins."
+# Thus, "By decomposing the DD estimator into its sources of variation (the 2x2 DD's)",
+# we can show which groups or units matter most.
 
-
-
+# The plot shows that the DD's with the highest weights, and thus the most influential,
+# all belong to the Treated vs Untreated comparison type.
 
 ################################################################################
 # (i)
