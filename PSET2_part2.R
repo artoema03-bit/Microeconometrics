@@ -45,8 +45,6 @@ summary(feols(Y4 ~ D | factor(state) + factor(year), data = df))
 # From the output, we note that the coefficients for Y2, Y3, Y4 are -0.01, -0.015
 # and -0.02 respectively, clearly different (including by sign) from the true effect.
 
-
-
 ################################################################################
 # (g)
 ################################################################################
@@ -133,12 +131,12 @@ bacon_output <- bacon(
 )
 
 
-ggplot(bacon_output, aes(x = estimate, y = weight, color = type)) +
+ggplot(bacon_output, aes(x = weight, y = estimate, color = type)) +
   geom_point(size = 3) +
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(
-    x = "2x2 DID estimate",
-    y = "Weight",
+    x = "Weight",
+    y = "2x2 DID estimate",
     color = "Comparison type",
     title = "Goodman-Bacon decomposition"
   ) +
@@ -200,6 +198,47 @@ mod3 <- feols(as.formula(paste("div_rate ~", paste(dummy_cols, collapse = " + ")
       weights = ~stpop, cluster = ~st, data = data)
 
 # comment
+summary(mod1)
+summary(mod2)
+summary(mod3)
+
+# Adding leads and lags of the treatment dummy is useful because it allows one to 
+# investigate how treatment effect changes over time. While standard DiD assumes 
+# that the treatment effect is constant over time and units, we can thus confirm
+# whether there were pre-trends and anticipation effect prior to the reform taking 
+# place, and whether the post-reform effect is temporary, delayed, growing in time, 
+# fading or reversing.
+# Including state-specific linear/quadratic trends in the model means assuming that 
+# untreated outcomes differ by a linear/quadratic drift across states
+
+# The first regression, i.e. the basic event-study specification with state and 
+# year fixed effects, shows that the first two lagging dummies, i.e. D_1, D_2, equal
+# to 0.32 and 0.3 respectively, are statistically significant at the 5% level; no leading dummies are
+# significant; the output also shows that the most distant lagging dummies, from D_11
+# to D_15, are significant at the same level. Since this result seems hard to interpret,
+# it is best to first observe the other two, more flexible models to see if it is 
+# persistent.
+
+# The second regression with the smooth, state-specific linear drift is mostly consistent,
+# showing that the only dummies to be statistically significant at the 5% level are the 
+# first seven lagging dummies. Since the significance of D_11-D_15 is not robust to 
+# the inclusion of state-specific drifts, we can assume it is a byproduct of omitted
+# state-specific trends, and ignore it.
+
+# The third regression is entirely consistent with the other models' results.
+# D_1, D_2 cluster around 0.3-0.38 across all three specifications, suggesting 
+# robustness.
+# We have also decided to use state populations as weights and to cluster SEs at 
+# the state level in order to align our analysis to Wolfers'.
+
+# Evidently, performing this analysis now allows us to say that, firstly, there is no evidence 
+# of pre-trends and anticipation effects, as we expect from the analysis of a new law's
+# effect; secondly, that the post-reform dynamic pattern shows that divorce rates were
+# impacted by the reform, as it went into effect in each state, mostly in the 
+# immediate years after the reform, that this effect slowed down substantially within 
+# the first ten years and allowed rates to return to baseline levels after that.
+# According to our most flexible model with quadratic state-specific trends, the window
+# for the effect to persist is seven years out.
 
 
 ################################################################################
