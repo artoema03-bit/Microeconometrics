@@ -6,6 +6,7 @@
 
 # Copy-pasting from pset pdf
 library(dplyr)
+set.seed(55555)
 df <- tibble (obs = 1 : 6) %>%
   mutate(
     state = floor ( 0.9 + obs/3)
@@ -35,15 +36,15 @@ summary(feols(Y4 ~ D | factor(state) + factor(year), data = df))
 # only be estimated efficiently for Y, where the TWFE, equal to 0.054, is homogeneous 
 # across treatment observations.
 # In Y2, Y3, Y4, the effect for state 2 in period 3 (i.e. for the already-treated
-# state) is larger than for the other. In each new dependent variable, the 
-# heterogeneous treatment bias increases, and the TWFE estimators with an absorbing
-# treatment dummy can no longer recover the true effect.
+# state) is larger than for the other. In each new dependent variable, the treatment
+# effect for the early adopter increases in their post-treatment period, and the TWFE 
+# estimators with an absorbing treatment dummy can no longer recover the true effect.
 # Per de Chaisemartin and d'Haultfeuille's contribution, with staggered timing, 
 # the TWFE coefficient is a weighted average of many DiD comparisons, including some 
 # where already-treated units serve as controls for newly treated ones in subsequent
 # periods. Then, increasing treatment effect heterogeneity induces the coefficient to break.
-# From the output, we note that the coefficients for Y2, Y3, Y4 are -0.01, -0.015
-# and -0.02 respectively, clearly different (including by sign) from the true effect.
+# From the output, we note that the coefficients for Y2, Y3, Y4 are -0.01, -0.15
+# and -0.2 respectively, clearly different (including by sign) from the true effect.
 
 ################################################################################
 # (g)
@@ -129,7 +130,7 @@ bacon_output <- bacon(
   id_var = "st",
   time_var = "year"
 )
-
+bacon_output
 
 ggplot(bacon_output, aes(x = weight, y = estimate, color = type)) +
   geom_point(size = 3) +
@@ -144,14 +145,14 @@ ggplot(bacon_output, aes(x = weight, y = estimate, color = type)) +
   annotate("text", x = .20, y = -.3, label = "DD estimate = -0.17", color = "red")+
   coord_cartesian(xlim = c(0, 0.25))
   theme_classic()
-
+  
 # The weighted mean of these estimates should be exactly the same as our earlier (naive) 
 # TWFE coefficient estimate. This is not exactly the case because of two reasons:
 # first, the bacon model is unweighted; second, it runs on a balanced sample.
 
 # Goodman-Bacon (2021) show that "the TWFE DiD estimator is a weighted average of all 
 # possible 2x2 estimators that compare timing groups to each other. Some use units treated 
-# at a particular time as the treatment group and untreted units as the control group.
+# at a particular time as the treatment group and untreated units as the control group.
 # Some compare units treated at two different times, using the later group as a control 
 # before its treatment begins and then the earlier group as a control after its treatment begins."
 # Thus, "By decomposing the DD estimator into its sources of variation (the 2x2 DD's)",
@@ -187,7 +188,8 @@ data <- data %>%
   mutate(
     dummy_lead10 = as.numeric( -10 >= year - lfdivlaw),
     dummy_lag15 = as.numeric( 15 <= year - lfdivlaw)
-  )
+  )%>%
+  filter(year>=1956 & year<=1988)
 
 ## (i)
 
@@ -234,6 +236,9 @@ summary(mod3)
 # the inclusion of state-specific drifts, we can assume it is a byproduct of omitted
 # state-specific trends, and ignore it.
 
+# + interpretation
+
+
 # The third regression is entirely consistent with the other models' results.
 # D_1, D_2 cluster around 0.3-0.38 across all three specifications, suggesting 
 # robustness.
@@ -248,6 +253,58 @@ summary(mod3)
 # the first ten years and allowed rates to return to baseline levels after that.
 # According to our most flexible model with quadratic state-specific trends, the window
 # for the effect to persist is seven years out.
+
+
+
+
+
+
+
+# i
+
+# Setup dummies
+
+data_event <- data %>%
+  mutate(
+    time = year - lfdivlaw,
+    time = case_when(
+      time > 15 ~ 15,
+      time < -10 ~ -10,
+      .default = time
+    ),
+    year2 = year^2
+  )
+
+# Exactly as in Wolfers
+
+# DONT LEAVE YOUR LAPTOP UNLOCKED :)
+
+data_event %>%
+  mutate(
+    time = case_when(
+      time < 0 ~ -1,
+      time %in% c(0, 1) ~ 1,
+      time %in% c(2, 3) ~ 3,
+      time %in% c(4, 5) ~ 5,
+      time %in% c(6, 7) ~ 7,
+      time %in% c(8, 9) ~ 9,
+      time %in% c(10, 11) ~ 11,
+      time %in% c(12, 13) ~ 13,
+      time %in% c(14, 15) ~ 15
+    )
+  ) %>%
+  feols(div_rate ~ i(time, ref = -1) | st + year + csw0(st[year], st[year2]), weight = ~ stpop) %>%
+  etable()
+
+# Our version
+
+mod_event <- data_event %>%
+  feols(div_rate ~ i(time, ref = -1) | st + year + csw0(st[year], st[year2]), cluster = ~ st, weight = ~ stpop)
+
+mod_event %>%
+  summary()
+
+iplot(mod_event)
 
 
 ################################################################################
