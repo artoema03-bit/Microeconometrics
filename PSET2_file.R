@@ -55,33 +55,45 @@ data_coll_1 <- data_1 %>%
   summarise (Y = weighted.mean (div_rate, w = stpop, na.rm = TRUE) ,
              .groups = "drop" )
 
+data_differences1 <- data_coll_1 %>%
+  pivot_wider(names_from= TREATED, values_from= Y) %>% 
+  mutate(differences = `1` - `0`)
+
 ggplot (data_coll_1, aes (x = year , y = Y ,
                           color = factor (TREATED) ,
                           linetype = factor (TREATED))) +
-  geom_line () +
+  geom_line()+
+  geom_line (data = data_differences1,
+             aes(x = year, y = differences),
+             inherit.aes = FALSE,
+             color = "black",
+             linetype = "dotdash") +
   geom_vline ( xintercept = c(1968, 1988),  linetype = "dashed") +
   labs (y = "Divorce Rate per 1000 People",
         title = "Outcome Trends") + 
   theme_minimal()
 
+
 # (ii)
 
 data_2 <- data %>% 
-  mutate (year = as.numeric (year) ,
-          TREATED = as.numeric(lfdivlaw >= 1969 & lfdivlaw <= 1973))
-
-data_2 <- data_2 %>%
-  filter((lfdivlaw == 2000 | (lfdivlaw >= 1968 & lfdivlaw <= 1988)) & year <= 1978) %>%
+  filter((lfdivlaw == 2000 | (lfdivlaw >= 1969 & lfdivlaw <= 1973)) & year <= 1978) %>%  
+  mutate (year = as.numeric (year),
+          TREATED = as.numeric(lfdivlaw >= 1969 & lfdivlaw <= 1973)) %>%
   group_by (year , TREATED) %>%
   summarise (Y = weighted.mean (div_rate, w = stpop, na.rm = TRUE) ,
              .groups = "drop" )
+
+data_differences2 <- data_2 %>% 
+  pivot_wider(names_from = TREATED, values_from = Y) %>%
+  mutate (differences = `1` - `0`)
 
 
 ggplot (data_2, aes ( x = year , y = Y ,
                       color = factor (TREATED ) ,
                       linetype = factor ( TREATED ) ) ) +
   geom_line () +
-  geom_vline ( xintercept = c(1968, 1969),  linetype = "dashed") +
+  geom_vline ( xintercept = c(1968.5),  linetype = "dashed") +
   labs (y = "Divorce Rate per 1000 People",
         title = "Outcome Trends") + 
   theme_minimal()
@@ -92,17 +104,15 @@ ggplot (data_2, aes ( x = year , y = Y ,
 # the evolution of treated states before the reform (for more than two periods) appears to be very similar to that 
 # of the control group. This, suggests that in the absence of treatment, both groups would have likely followed parallel paths. 
 
-# Return to this 
 
 # (c)
 
 data_3 <- data %>%
-  filter((lfdivlaw == 2000 | (lfdivlaw >= 1968 & lfdivlaw <= 1988)) & year %in% c(1968, 1978)) %>%
+  filter((lfdivlaw == 2000 | (lfdivlaw >= 1969 & lfdivlaw <= 1973)) & year %in% c(1968, 1978)) %>%
   mutate (year = as.numeric (year),
           UNILATERAL = as.numeric(lfdivlaw >= 1969 & lfdivlaw <= 1973),
           POST = as.numeric(year == 1978),
           POST_UNILATERAL = (POST*UNILATERAL))
-
 # (i)
 
 regression_1 <- lm(div_rate ~ POST_UNILATERAL + POST, data = data_3, weights = data_3$stpop)
