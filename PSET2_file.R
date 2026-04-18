@@ -50,25 +50,26 @@ data_1 <- data %>%
   mutate (year = as.numeric (year) ,
           TREATED = as.numeric(lfdivlaw >= 1968 & lfdivlaw <= 1988))
 
-data_coll_1 <- data_1 %>%
+data_1 <- data_1 %>%
   group_by (year, TREATED) %>%
   summarise (Y = weighted.mean (div_rate, w = stpop, na.rm = TRUE) ,
              .groups = "drop" )
 
-data_differences1 <- data_coll_1 %>%
+data_differences_1 <- data_coll_1 %>%
   pivot_wider(names_from= TREATED, values_from= Y) %>% 
   mutate(differences = `1` - `0`)
 
-ggplot (data_coll_1, aes (x = year , y = Y ,
-                          color = factor (TREATED) ,
-                          linetype = factor (TREATED))) +
+ggplot (data_1, aes (x = year , y = Y ,
+                          color = factor (TREATED))) +
   geom_line()+
-  geom_line (data = data_differences1,
-             aes(x = year, y = differences),
-             inherit.aes = FALSE,
-             color = "black",
-             linetype = "dotdash") +
+  geom_line (data = data_differences_1,
+             aes(x = year, y = differences, color = "Difference"),
+             inherit.aes = FALSE) +
   geom_vline ( xintercept = c(1968, 1988),  linetype = "dashed") +
+  scale_color_manual(
+    name = "Series",
+    values = c("0" = "red", "1" = "blue", "Difference" = "black"),
+    labels = c("0" = "Control Group", "1" = "Treated Group", "Difference" = "Difference (Treated - Control)")) +
   labs (y = "Divorce Rate per 1000 People",
         title = "Outcome Trends") + 
   theme_minimal()
@@ -84,16 +85,22 @@ data_2 <- data %>%
   summarise (Y = weighted.mean (div_rate, w = stpop, na.rm = TRUE) ,
              .groups = "drop" )
 
-data_differences2 <- data_2 %>% 
+data_differences_2 <- data_2 %>% 
   pivot_wider(names_from = TREATED, values_from = Y) %>%
   mutate (differences = `1` - `0`)
 
 
 ggplot (data_2, aes ( x = year , y = Y ,
-                      color = factor (TREATED ) ,
-                      linetype = factor ( TREATED ) ) ) +
+                      color = factor (TREATED))) +
   geom_line () +
+  geom_line (data = data_differences_2,
+             aes(x = year, y = differences, color = "Difference"),
+             inherit.aes = FALSE) +
   geom_vline ( xintercept = c(1968.5),  linetype = "dashed") +
+  scale_color_manual(
+    name = "Series",
+    values = c("0" = "red", "1" = "blue", "Difference" = "black"),
+    labels = c("0" = "Control Group", "1" = "Treated Group", "Difference" = "Difference (Treated - Control)")) +
   labs (y = "Divorce Rate per 1000 People",
         title = "Outcome Trends") + 
   theme_minimal()
@@ -115,12 +122,12 @@ data_3 <- data %>%
           POST_UNILATERAL = (POST*UNILATERAL))
 # (i)
 
-regression_1 <- lm(div_rate ~ POST_UNILATERAL + POST, data = data_3, weights = data_3$stpop)
+regression_1 <- feols(div_rate ~ POST_UNILATERAL + POST, data = data_3, weights = data_3$stpop)
 summary(regression_1)
 
 # (ii)
 
-did_1 <- lm(div_rate ~ factor (POST)*factor (UNILATERAL), data = data_3, weights = data_3$stpop)
+did_1 <- feols(div_rate ~ factor (POST)*factor (UNILATERAL), data = data_3, weights = data_3$stpop)
 summary (did_1)
 
 #DiD by hand
