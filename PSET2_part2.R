@@ -6,6 +6,7 @@
 
 # Copy-pasting from pset pdf
 library(dplyr)
+library(fixest)
 set.seed(55555)
 df <- tibble (obs = 1 : 6) %>%
   mutate(
@@ -35,16 +36,35 @@ summary(feols(Y4 ~ D | factor(state) + factor(year), data = df))
 # Evidently, as the true treatment effect is 0.05, the treatment coefficient can 
 # only be estimated efficiently for Y, where the TWFE, equal to 0.054, is homogeneous 
 # across treatment observations.
-# In Y2, Y3, Y4, the effect for state 2 in period 3 (i.e. for the already-treated
-# state) is larger than for the other. In each new dependent variable, the treatment
-# effect for the early adopter increases in their post-treatment period, and the TWFE 
-# estimators with an absorbing treatment dummy can no longer recover the true effect.
-# Per de Chaisemartin and d'Haultfeuille's contribution, with staggered timing, 
+# In Y2, Y3, Y4, the treatment effect shows a post-treatment dynamic path, as the 
+# effect for state 2 in period 3 (i.e. for the already-treated state) increases 
+# from the baseline 0.05 by 0.3, 0.4, 0.5 respectively.
+# Thus, the TWFE estimator can no longer recover the true treatment effect for these
+# new outcome variables.
+
+# Per de Chaisemartin and d'Haultfoeuille's contribution, with staggered treatment adoption, 
 # the TWFE coefficient is a weighted average of many DiD comparisons, including some 
-# where already-treated units serve as controls for newly treated ones in subsequent
-# periods. Then, increasing treatment effect heterogeneity induces the coefficient to break.
+# where already-treated units serve as controls for newly treated ones in subsequent 
+# periods.
 # From the output, we note that the coefficients for Y2, Y3, Y4 are -0.01, -0.15
 # and -0.2 respectively, clearly different (including by sign) from the true effect.
+# Since the individual ATT are trivially positive, the sign switch must be determined 
+# by the weights. In fact, the de Chaisemartin decomposition computes weights on each 
+# treated cell by projecting treatment on the space spanned by  unit and time effects, 
+# residualizing it and then dividing it by the sum of the residualized treatment, D_tilde, over all treated cells.
+# As unit and time effects can be large for an early adopter, projecting out, or,
+# in this additive setup, demeaning unit and time effects can cause the numerator to be 
+# negative.
+
+
+
+
+# Unlike Bacon weights (which are variance-based and always
+# positive, with negativity showing up in the 2x2 estimates themselves), de Chaisemartin
+# weights can be directly negative. As heterogeneity grows from Y2 to Y4, the negatively
+# weighted ATT — state 2 at year 3, where the treatment effect has grown large — becomes
+# increasingly influential, eventually dragging the overall coefficient below zero.
+
 
 ################################################################################
 # (g)
@@ -160,6 +180,19 @@ ggplot(bacon_output, aes(x = weight, y = estimate, color = type)) +
 
 # The plot shows that the DD's with the highest weights, and thus the most influential,
 # all belong to the Treated vs Untreated comparison type.
+  
+  
+# The plot shows that the DD's with the highest weights, and thus the most influential,
+# all belong to the Treated vs Untreated comparison type. This is reassuring: these are
+# the cleanest comparisons (never-treated units as controls), so they receive the most
+# variance weight. Note that all Bacon weights are positive by construction — the Bacon
+# decomposition assigns weights proportional to subsample size and variance of D in
+# that subsample, both of which are non-negative.
+# Negativity in the Bacon decomposition shows up not in the weights but in the 2x2 estimates
+# themselves: the Earlier vs Later Treated and Later vs Earlier Treated dots scattered
+# below zero are the contaminated comparisons where already-treated units act as controls. 
+# The de Chaisemartin decomposition reframes this: instead of positive weights on negative estimates, 
+# it gives you potentially negative weights directly on the (positive) ATTs.
 
 ################################################################################
 # (i)
@@ -220,30 +253,38 @@ summary(mod3)
 # place, and whether the post-reform effect is temporary, delayed, growing in time, 
 # fading or reversing.
 # Including state-specific linear/quadratic trends in the model means assuming that 
-# untreated outcomes differ by a linear/quadratic drift across states
+# untreated outcomes differ by a linear/quadratic drift across states.
+# We have also decided to use state populations as weights and to cluster SEs at 
+# the state level in order to align our analysis to Wolfers'.
 
 # The first regression, i.e. the basic event-study specification with state and 
 # year fixed effects, shows that the first two lagging dummies, i.e. D_1, D_2, equal
-# to 0.32 and 0.3 respectively, are statistically significant at the 5% level; no leading dummies are
-# significant; the output also shows that the most distant lagging dummies, from D_11
+# to 0.33 and 0.3 respectively, are statistically significant at the 5% level; no leading dummies are
+# significant; the output also shows that D_5 and the most distant lagging dummies, from D_11
 # to D_15, are significant at the same level. Since this result seems hard to interpret,
 # it is best to first observe the other two, more flexible models to see if it is 
 # persistent.
 
-# The second regression with the smooth, state-specific linear drift is mostly consistent,
-# showing that the only dummies to be statistically significant at the 5% level are the 
-# first seven lagging dummies. Since the significance of D_11-D_15 is not robust to 
-# the inclusion of state-specific drifts, we can assume it is a byproduct of omitted
-# state-specific trends, and ignore it.
+# The second regression with the smooth, state-specific linear drift shows that only
+# D_1, D_2, D_3, D_5, D_6 are statistically significant at the 5% level.
 
-# + interpretation
-
-
-# The third regression is entirely consistent with the other models' results.
-# D_1, D_2 cluster around 0.3-0.38 across all three specifications, suggesting 
+# The third regression is mostly consistent with the other models' results, as
+# only the first two lagging dummies appear significant.
+# D_1, D_2 cluster around 0.25-0.4 across all three specifications, suggesting 
 # robustness.
-# We have also decided to use state populations as weights and to cluster SEs at 
-# the state level in order to align our analysis to Wolfers'.
+
+# A note of caution on the inclusion of state-specific trends is warranted.
+# While the inclusion of state-specific trends may control for omitted slow-moving 
+# confounders correlated  with treatment timing, Wolfers (2003) shows that 
+# when the treatment effect follows a non-monotonic dynamic path, as is the case here,
+# with divorce rates spiking then declining, then state-specific trends can
+# partially absorb the treatment effect itself. 
+# Thus the sensitivity of our results to including state-specific trends
+# is itself informative: it does not necessarily imply that some omitted variable bias
+# from state-specific sources was present in the basic model; it may instead signal that 
+# trends are soaking up genuine treatment variation.
+# The event-study approach we adopt here is more robust precisely because it traces 
+# the full dynamic path, leaving less room for trends to confound identification.
 
 # Evidently, performing this analysis now allows us to say that, firstly, there is no evidence 
 # of pre-trends and anticipation effects, as we expect from the analysis of a new law's
@@ -254,58 +295,21 @@ summary(mod3)
 # According to our most flexible model with quadratic state-specific trends, the window
 # for the effect to persist is seven years out.
 
-
-
-
-
-
-
-# i
-
-# Setup dummies
-
-data_event <- data %>%
-  mutate(
-    time = year - lfdivlaw,
-    time = case_when(
-      time > 15 ~ 15,
-      time < -10 ~ -10,
-      .default = time
-    ),
-    year2 = year^2
-  )
-
-# Exactly as in Wolfers
-
-# DONT LEAVE YOUR LAPTOP UNLOCKED :)
-
-data_event %>%
-  mutate(
-    time = case_when(
-      time < 0 ~ -1,
-      time %in% c(0, 1) ~ 1,
-      time %in% c(2, 3) ~ 3,
-      time %in% c(4, 5) ~ 5,
-      time %in% c(6, 7) ~ 7,
-      time %in% c(8, 9) ~ 9,
-      time %in% c(10, 11) ~ 11,
-      time %in% c(12, 13) ~ 13,
-      time %in% c(14, 15) ~ 15
-    )
-  ) %>%
-  feols(div_rate ~ i(time, ref = -1) | st + year + csw0(st[year], st[year2]), weight = ~ stpop) %>%
-  etable()
-
-# Our version
-
-mod_event <- data_event %>%
-  feols(div_rate ~ i(time, ref = -1) | st + year + csw0(st[year], st[year2]), cluster = ~ st, weight = ~ stpop)
-
-mod_event %>%
-  summary()
-
-iplot(mod_event)
-
+# Since the significance of D_11-D_15 displayed by the first model is not robust to 
+# the inclusion of state-specific drifts, we can assume it is a byproduct of failing to 
+# control for omitted state-specific trends, and ignore it.
+# An alternative interpretation of the fading and eventual reversal of the
+# lagging dummies is a mechanical compositional effect on the marriage pool,
+# as discussed in Wolfers (2003). Unilateral divorce law facilitates the
+# dissolution of "bad" marriages, that is, those in which at least one
+# spouse preferred divorce but could not obtain consent. As these marriages
+# are resolved in court, the remaining stock of marriages is of relatively better
+# quality, lowering the aggregate desire of divorce and mechanically reducing divorce
+# rates a decade or more after reform.
+# Under this reading, the insignificance of the most remote lagging dummies does not
+# necessarily imply that the treatment effect was temporary, but rather that
+# the treatment had the secondary effect of lowering divorce "risk" via the 
+# mechanism of improving aggregate marriage quality.
 
 ################################################################################
 # (j)
