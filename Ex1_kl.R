@@ -73,7 +73,7 @@ iplot(mod_event)
 # Wolfers explains the difference by arguing that Friedberg’s single-treatment-dummy DiD with state-specific trends forces the treatment effect to look like a level shift,
 # and, because the true effect is not constant over time, those trend controls partly absorb the post-reform decline after the initial spike,
 # resulting in an overstated and overly persistent treatment effect.
-# Wolfers’s preferred interpretation is that unilateral divorce most likely shifted some divorces forward in time, with no robust evidence of a permanent increase in the total number of divorces.
+# Wolfers's preferred interpretation is that unilateral divorce most likely shifted some divorces forward in time, with no robust evidence of a permanent increase in the total number of divorces.
 
 # l
 

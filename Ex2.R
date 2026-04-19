@@ -65,7 +65,7 @@ diagn_blp
 # It shows which observables
 
 # The best linear projection is a doubly robust linear model of the estimated CATEs on covariates.
-# As a summary, it descibes which observables are associated with more or less positive predicted treatment effects.
+# As a summary, it describes which observables are associated with more or less positive predicted treatment effects.
 # The BLP also shows that heterogeneity is mainly related to religious adherence, women's labor force participation, and, more weakly, domestic violence.
 # The coefficient on religious_adherence_1968 is negative and highly significant:
 # counties with higher religious adherence tend to have less positive (more negative) estimated treatment effects.
