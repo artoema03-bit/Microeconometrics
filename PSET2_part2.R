@@ -111,11 +111,7 @@ data_new <- data %>%
   mutate (year = as.numeric(year),
           init_stpop = stpop[year == 1956])%>%   # Adding init_stpop variable
   ungroup()%>%
-  filter((lfdivlaw == 2000 | (lfdivlaw >= 1968 & lfdivlaw <= 1988)) & year %in% c(1968, 1978)) %>%
-  mutate( UNILATERAL = as.numeric(lfdivlaw >= 1969 & lfdivlaw <= 1973),
-          POST = as.numeric(year == 1978),
-          POST_UNILATERAL = (POST*UNILATERAL),
-          IMP_UNILATERAL = as.numeric(year >= lfdivlaw))%>%
+  mutate( IMP_UNILATERAL = as.numeric(year >= lfdivlaw))%>%
   filter(year>=1956 & year<=1988)
 
 ## (ii)
