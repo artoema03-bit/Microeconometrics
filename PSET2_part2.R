@@ -30,8 +30,7 @@ print(df)
 summary(feols(sw(Y, Y2, Y3, Y4)  ~ D | state + year, data = df))
 
 # Evidently, as the true treatment effect is 0.05, the treatment coefficient can
-# only be consistently estimated for Y, where treatment effects are homogeneous:
-# the TWFE estimate is equal to 0.045.
+# only be consistently estimated for Y, where treatment effects are homogeneous.
 # In Y2, Y3, Y4, the treatment effect has a post-treatment dynamic path, as the
 # effect for state 2 in period 3 (i.e. for the already-treated state) increases
 # from the baseline 0.05 by 0.3, 0.4, 0.5 respectively.
@@ -51,7 +50,7 @@ summary(feols(sw(Y, Y2, Y3, Y4)  ~ D | state + year, data = df))
 # by projecting treatment on the space spanned by unit and time effects, residualizing
 # it and then dividing it by the sum of the residualized treatment over all treated cells.
 # As unit and time effects can be large for an early adopter, projecting out, or,
-# in this additive setup, demeaning unit and time effects can cause the numerator
+# in this additive setup, demeaning unit and time effects causes the numerator
 # to be negative.
 
 # Unlike Bacon weights (which are variance-based and always positive), de Chaisemartin
@@ -88,11 +87,10 @@ obj4
 # The twowayfeweights output shows that the TWFE coefficient does not actually estimate
 # the true treatment effect, but rather, as mentioned in (f), a sum of 2 positively
 # weighted ATTs and one negatively weighted ATT (state 2 at time 3).
-# The weights are equal for all 4 regressions because the underlying treatment schedule
+# The weights are equal for all 4 regressions because the underlying treatment design
 # is the same.
 # The estimated effect's sign switches when regressing Y4 on D instead of Y because
-# the negatively weighted ATT becomes more influential as the bias increases, 
-# while the weight itself remains unchanged.
+# the negatively weighted ATT gets larger, while the weight itself remains unchanged.
 
 ################################################################################
 # (h)
@@ -178,8 +176,15 @@ ggplot(bacon_output, aes(x = weight, y = estimate, color = type)) +
 # assigns weights proportional to subsample size and variance of treatment in that
 # subsample, both of which are non-negative.
 # Negativity in the Bacon decomposition shows up not in the weights but in the 2x2
-# estimates themselves: the Later vs Earlier Treated dots scattered below zero are
-# the contaminated comparisons where already-treated units act as controls.
+# estimates themselves: the Later vs Earlier Treated dots are the contaminated
+# comparisons where already-treated units act as controls.
+
+# Negativity in the Bacon decomposition shows up in the 2x2 DiD themselves, and is not 
+# inherently problematic, as a negative 2x2 DiD could reflect a true negative effect. 
+# However, the fact that  "Later vs Earlier Treated" and "Later vs Always Treated" 
+# comparisons use already-treated units as controls make them invalid DiDs under 
+# treatment effect heterogeneity.
+
 # The de Chaisemartin decomposition reframes this: instead of positive weights on
 # negative estimates, it gives potentially negative weights directly on (positive) ATTs.
 
@@ -211,14 +216,23 @@ data <- data %>%
   )%>%
   filter(year>=1956 & year<=1988)
 
-## (i)
-
+## (i) group + time FE only
 dummy_cols <- c(names_list, "dummy_lead10", "dummy_lag15")
 
-mod1 <- feols(as.formula(paste("div_rate ~", paste(dummy_cols, collapse = " + "), "| st + year + csw0(st[year], st[year^2])")),
-      weights = ~stpop, cluster = ~st, data = data)
+mod1 <- feols(as.formula(paste("div_rate ~", paste(dummy_cols, collapse = " + "), "| st + year")),
+                weights = ~stpop, cluster = ~st, data = data)
+
+## (ii) linear trends
+mod2 <- feols(as.formula(paste("div_rate ~", paste(dummy_cols, collapse = " + "), "| st + year + st[year]")),
+                 weights = ~stpop, cluster = ~st, data = data)
+
+## (iii) quadratic trends
+mod3 <- feols(as.formula(paste("div_rate ~", paste(dummy_cols, collapse = " + "), "| st + year + st[year] + st[year^2]")),
+                  weights = ~stpop, cluster = ~st, data = data)
 
 summary(mod1)
+summary(mod2)
+summary(mod3)
 
 # Adding leads and lags of the treatment dummy is useful because it allows one to
 # investigate how treatment effect changes over time. While standard DiD assumes
@@ -256,11 +270,11 @@ summary(mod1)
 # trends are soaking up genuine treatment variation.
 
 # Evidently, performing this analysis allows us note that: firstly, there
-# is no strong evidence of pre-trends and anticipation effects, as we expect from
-# the analysis of a new law's effect; secondly, the post-reform dynamic pattern gives some
-# evidence that state-level divorce rates were impacted by the reforms only in the
-# immediate years after implementation; lastly, this effect likely slowed down
-# within the first ten years, with rates gradually returning to baseline levels.
+# is no strong evidence of pre-trends and anticipation effects; secondly, the 
+# post-reform dynamic pattern gives some evidence that state-level divorce rates were 
+# impacted by the reforms only in the immediate years after implementation; 
+# lastly, this effect likely slowed down within the first ten years, with rates 
+# gradually returning to baseline levels.
 
 # Since the significance of D_11-D_15 displayed by the first model is not robust
 # to the inclusion of state-specific drifts, we could interpret it as a byproduct
@@ -290,6 +304,7 @@ summary(mod1)
 
 library(broom)
 library(stringr)
+library(readr)
 
 extract_eventstudy <- function(model, model_name) {
   tidy(model, conf.int = TRUE) %>%
@@ -310,9 +325,9 @@ extract_eventstudy <- function(model, model_name) {
 }
 
 plot_data <- bind_rows(
-  extract_eventstudy(mod1[[1]], "FE only"),
-  extract_eventstudy(mod1[[2]], "FE + state linear trends"),
-  extract_eventstudy(mod1[[3]], "FE + state quadratic trends")
+  extract_eventstudy(mod1, "FE only"),
+  extract_eventstudy(mod2, "FE + state linear trends"),
+  extract_eventstudy(mod3, "FE + state quadratic trends")
 ) %>%
   arrange(model, event_time) %>%
   mutate(model = factor(model, c("FE only", "FE + state linear trends", "FE + state quadratic trends")))
