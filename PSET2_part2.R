@@ -269,7 +269,6 @@ summary(mod3)
 # D_1, D_2 cluster around 0.25-0.4 across all three specifications, suggesting 
 # robustness.
 
-# A note of caution on the inclusion of state-specific trends is warranted.
 # While the inclusion of state-specific trends may control for omitted slow-moving 
 # confounders correlated  with treatment timing, Wolfers (2003) shows that 
 # when the treatment effect follows a non-monotonic dynamic path, as is the case here,
