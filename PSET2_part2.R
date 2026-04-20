@@ -56,16 +56,6 @@ summary(feols(Y4 ~ D | factor(state) + factor(year), data = df))
 # in this additive setup, demeaning unit and time effects can cause the numerator to be 
 # negative.
 
-
-
-
-# Unlike Bacon weights (which are variance-based and always
-# positive, with negativity showing up in the 2x2 estimates themselves), de Chaisemartin
-# weights can be directly negative. As heterogeneity grows from Y2 to Y4, the negatively
-# weighted ATT — state 2 at year 3, where the treatment effect has grown large — becomes
-# increasingly influential, eventually dragging the overall coefficient below zero.
-
-
 ################################################################################
 # (g)
 ################################################################################
