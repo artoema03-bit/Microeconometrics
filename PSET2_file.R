@@ -286,6 +286,6 @@ summary(regression_4)
 # estimated without including the linear/quadratic trends.
 # However, the differences in coefficients across regressions, especially the first
 # one against the latter two, suggests that treated and control groups may have
-# different underlying state-specific trends. This indicates that the simple parallel
-# trends assumption might be violated and the baseline regression may be biased
-# by omitted state-specific trend heterogeneity.
+# different underlying state-specific trends correlated with treatment timing.
+# This indicates that the simple parallel trends assumption might be violated and
+# the baseline regression may be biased by omitted state-specific trend heterogeneity.
