@@ -225,7 +225,7 @@ print(did_mat)
 did_mat_xlsx <- as.data.frame(did_mat)
 did_mat_xlsx <- cbind(Group = rownames(did_mat_xlsx), did_mat_xlsx)
 
-write_xlsx(did_mat_xlsx, "TABLE_1.xlsx")
+write_xlsx(did_mat_xlsx, "out/TABLE_1.xlsx")
 
 ################################################################################
 # (e)
