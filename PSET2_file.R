@@ -279,11 +279,9 @@ summary(regression_4)
 # should be similar across all specifications.
 
 ################################################################################
-# (f) Illustration of naivete of TWFE estimator
+# (f)
 ################################################################################
 
-library(dplyr)
-library(fixest)
 set.seed(55555)
 
 df <- tibble(obs = 1:6) %>%
@@ -296,7 +294,7 @@ df <- tibble(obs = 1:6) %>%
   mutate(
     D = as.numeric((state == 1 & year == 3 ) | (state == 2 & year %in% c(2, 3))),
     # Create simulated outcomes
-    Y = 0.1 + 0.02 * (year==2) + 0.05 * (D==1) + + runif(n())/100,
+    Y = 0.1 + 0.02 * (year==2) + 0.05 * (D==1) + runif(n())/100,
     Y2 = 0.1 + 0.02 * (year==2) + 0.05 * (D==1) + 0.3 * (state == 2 & year == 3 ) + runif(n())/100,
     Y3 = 0.1 + 0.02 * (year==2) + 0.05 * (D==1) + 0.4 * (state == 2 & year == 3 ) + runif(n())/100,
     Y4 = 0.1 + 0.02 * (year==2) + 0.05 * (D==1) + 0.5 * (state == 2 & year == 3 ) + runif(n())/100
@@ -307,34 +305,27 @@ print(df)
 # Regressions
 summary(feols(sw(Y, Y2, Y3, Y4)  ~ D | state + year, data = df))
 
-# Evidently, as the true treatment effect is 0.05, the treatment coefficient can
-# only be consistently estimated for Y, where treatment effects are homogeneous.
-# In Y2, Y3, Y4, the treatment effect has a post-treatment dynamic path, as the
-# effect for state 2 in period 3 (i.e. for the already-treated state) increases
-# from the baseline 0.05 by 0.3, 0.4, 0.5 respectively.
-# Thus, the TWFE estimator can no longer recover the true treatment effect for these
-# new outcome variables.
+# With a true treatment effect of 0.05, the treatment effect is consistently estimated
+# only for Y (0.045 due to noise), where treatment effects are homogeneous.
+# For Y2, Y3, Y4, treatment effect heterogeneity is introduced: the effect for state 2
+# in period 3 (i.e. for the already-treated state) increases from the baseline 0.05
+# by 0.3, 0.4, 0.5 respectively.
+# In this case, the TWFE estimator has no clean causal interpretation as a common
+# treatment effect. The coefficients for Y2, Y3, Y4 are -0.10, -0.15 and -0.20,
+# respectively, clearly different in magnitude and sign from the common 0.05 effect.
 
-# Per de Chaisemartin and d'Haultfoeuille's contribution, with staggered treatment adoption,
-# the TWFE coefficient is a weighted average of many DiD comparisons, including some
-# where already-treated units serve as controls for newly treated ones in subsequent
-# periods.
-# From the output, we note that the coefficients for Y2, Y3, Y4 are -0.10, -0.15
-# and -0.20 respectively, clearly different (including by sign) from the true effect.
-# Since the individual ATT are trivially positive, the sign switch must be determined
-# by the weights.
+# Per de Chaisemartin and d'Haultfoeuille, with staggered treatment adoption, the
+# TWFE coefficient is a weighted average of group-time ATTs. Nothing prevents those
+# weights from being negative, so even with positive ATTs, the sign on the TWFE
+# estimate can be negative if negative-weighted ATTs overpower the rest.
 
 # In fact, the de Chaisemartin decomposition computes weights on each treated cell
-# by projecting treatment on the space spanned by unit and time effects, residualizing
-# it and then dividing it by the sum of the residualized treatment over all treated cells.
-# As unit and time effects can be large for an early adopter, projecting out, or,
-# in this additive setup, demeaning unit and time effects causes the numerator
-# to be negative.
-
-# Unlike Bacon weights (which are variance-based and always positive), de Chaisemartin
-# weights can be directly negative.
-# As heterogeneity grows from Y2 to Y4, the negatively weighted ATT becomes increasingly influential,
-# eventually dragging the overall coefficient below zero.
+# by projecting treatment on the unit and time effects, residualizing it and then
+# dividing it by the sum of the residualized treatment over all treated cells.
+# This means that some group-time cells, like the already-treated state 2 in period 3,
+# are assigned negative residualized treatment, which then leads to negative weights.
+# As Y2, Y3, Y4 make the treatment effect in that negatively weighted ATT increasingly
+# large, it drags the overall coefficient below zero.
 
 ################################################################################
 # (g)
