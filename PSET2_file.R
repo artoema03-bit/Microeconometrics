@@ -185,8 +185,8 @@ summary(did_1)
 # the effect of treatment on divorce rates. It is both economically and statistically
 # insignificant: -0.005 (SE: 0.202).
 # From the earlier graphs we see that the positive and statistically significant
-# estimate for POST_UNILATERAL in regression (i) picks up the treated group
-# with higher divorce rates on average, as the estimated coefficient did not account
+# estimate for POST_UNILATERAL in regression (i) picks up that the treated group
+# has higher divorce rates on average, as the estimated coefficient did not account
 # for these baseline differences. For the second regression, after the reforms,
 # both groups continued to see increases in divorce rates, but the gap between the
 # two did not meaningfully widen, explaining the small and insignificant DiD estimate.
