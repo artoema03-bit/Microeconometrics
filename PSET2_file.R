@@ -824,16 +824,24 @@ ggsave("out/Q2_b_3.png")
 
 # c
 
-# As a disclaimer, because treatment varies at the state level while the causal forest is estimated on county-level observations,
-# the source of independent treatment variation is the state, not the county.
-# So, the county-level heterogeneity patterns should be interpreted cautiously.
+# It should be noted that because treatment varies at the state level while the
+# causal forest is estimated on county-level observations, the source of independent
+# treatment variation is the state, not the county. So, the county-level heterogeneity
+# patterns should be interpreted cautiously.
 
-# Our results provide some suggestive evidence of heterogeneous treatment effects, even though the overall ATE is close to zero.
-# First, the BLP finds significant relationships between the CATE and some pre-treatment covariates, especially religious adherence and women's labor force participation.
-# Second, the TOC/AUTOC is positive, suggesting that the forest's ranking of units by predicted treatment effect contains useful information.
-# Third, the CATE plots show a clear contrast between low- and high-religious-adherence counties.
-# Therefore, the average effect is small not because treatment has no effect for everyone,
-# but because positive and negative effects appear to offset each other across different counties.
+# Taking that into account, our results provide some suggestive evidence of heterogeneous
+# treatment effects, even though the overall ATE is close to zero.
+# First, the BLP indicates some statistically significant linear associations between
+# the CATEs and pre-treatment covariates, especially religious adherence and women's
+# labor force participation.
+# Second, the TOC curve is mostly positive, suggesting that the forest's ranking of units
+# by predicted treatment effect might contain useful information, but the AUTOC
+# is imprecise for a strong conclusion.
+# Third, the CATE plots show a contrast between low- and high-religious-adherence
+# counties.
+# Therefore, there is some evidence that the ATE might be small not because the
+# treatment is ineffective, but because positive and negative effects offset each
+# other across different counties.
 
 # d
 
