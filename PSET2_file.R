@@ -165,22 +165,6 @@ summary(regression_1)
 did_1 <- feols(div_rate ~ POST * UNILATERAL, data = data_3, weights = ~stpop, cluster = ~st)
 summary(did_1)
 
-#DiD by hand
-
-means <- data_3 %>%
-group_by(UNILATERAL, POST) %>%
-  summarise(
-  div_rate_weighted = weighted.mean(div_rate, w = stpop, na.rm = TRUE),
-  .groups = "drop")
-
-did_2 <- (means$div_rate_weighted[means$UNILATERAL==1 & means$POST==1] -
-          means$div_rate_weighted[means$UNILATERAL==1 & means$POST==0]) -
-          (means$div_rate_weighted[means$UNILATERAL==0 & means$POST==1] -
-          means$div_rate_weighted[means$UNILATERAL==0 & means$POST==0])
-
-print(did_2)
-
-
 # For regressions, where possible, we cluster standard errors by state.
 # The pooled OLS regression (i) shows that, in 1978, treated states are associated with 1.70
 # more divorces per 1,000 people compared to the control states, controlling for
