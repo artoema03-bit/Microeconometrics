@@ -666,6 +666,8 @@ dev.off()
 # Exercise 2
 ################################################################################
 
+library(grf)
+
 data_base <- read_delim("files/expanded_data.csv") %>%
   mutate(st = factor(st), urbanization = if_else(urbanization == "Urban", 1, 0))
 
