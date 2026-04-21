@@ -583,15 +583,21 @@ data_l <- data %>%
 
 # k
 
-# Once considering state-specific linear or quadratic trends, Friedberg (1998) concludes that unilateral divorce laws substantially and persistently raised divorce rates,
+# Once considering state-specific linear or quadratic trends, Friedberg (1998) concludes
+# that unilateral divorce laws substantially and persistently raised divorce rates,
 # accounting for a meaningful share of the rise in divorce rates after the late 1960s.
-# Wolfers (2006), in contrast, finds that the effect is mainly temporary: divorce rates spiked after reforms, remained high for roughly a decade,
-# and then returned to the pre-reform baseline,
-# implying little long-run contribution of unilateral divorce laws to the overall rise in the divorce rate.
-# Wolfers explains the difference by arguing that Friedberg’s single-treatment-dummy DiD with state-specific trends forces the treatment effect to look like a level shift,
-# and, because the true effect is not constant over time, those trend controls partly absorb the post-reform decline after the initial spike,
-# resulting in an overstated and overly persistent treatment effect.
-# Wolfers's preferred interpretation is that unilateral divorce most likely shifted some divorces forward in time, with no robust evidence of a permanent increase in the total number of divorces.
+# Wolfers (2006), in contrast, finds that the effect is mainly temporary: divorce
+# rates spiked after reforms, remained high for roughly a decade, and then returned
+# to the pre-reform baseline, implying little long-run contribution of unilateral
+# divorce laws to the overall rise in the divorce rate.
+# Wolfers explains the difference by arguing that Friedberg’s single-treatment-dummy
+# DiD with state-specific trends forces the treatment effect to look like a level
+# shift, and, because the true effect is not constant over time, those trend controls
+# partly absorb the post-reform decline after the initial spike, resulting in an
+# overstated and overly persistent treatment effect.
+# Wolfers's preferred interpretation is that unilateral divorce most likely shifted
+# some divorces forward in time, with no robust evidence of a permanent increase
+# in the total number of divorces.
 
 # l
 
@@ -617,15 +623,30 @@ mod_sunab %>%
 
 iplot(mod_sunab)
 
-# The Sun–Abraham correction addresses the contamination problem of standard TWFE event studies under staggered adoption:
-# TWFE lead and lag coefficients can mix effects from different cohorts and relative periods, while Sun–Abraham estimates cohort-specific event-time effects and then aggregates them using appropriate controls.
-# Using the Sun–Abraham estimator, we find little evidence of pre-trends in the baseline specification with state and year fixed effects.
-# The introduction of unilateral divorce laws raises divorce rates in the short run, with positive and statistically significant effects in the first 2–3 years after reform.
-# The effect then fades and eventually turns negative in later years.
-# This pattern is qualitatively consistent with Wolfers (2006), who argues that unilateral divorce laws caused a temporary spike in divorce rates that largely reversed over time.
-# The specification with state-specific linear trends gives a similar result but without the statistically significant long term decrease in divorce rates.
-# By contrast, the quadratic-trend specification is problematic: it shows strong positive pre-treatment coefficients and large negative post-treatment effects.
-# This, most likely, is a consequence of over-controling the counterfactual trend with the state-specific quadratic trend partly absorbing the effect of unilateral divorce laws, which is itself highly dynamic and curved over time.
+# The Sun–Abraham correction addresses the contamination problem of standard TWFE
+# event studies under staggered adoption: TWFE lead and lag coefficients can mix
+# effects from different cohorts and relative periods, while Sun–Abraham estimates
+# cohort-specific event-time effects and then aggregates them using valid comparison groups.
+# Using the Sun–Abraham estimator, we find little evidence of pre-trends in the
+# baseline specification with state and year fixed effects. The introduction of
+# unilateral divorce laws raises divorce rates in the short run, with positive and
+# statistically significant effects in the first 2–3 years post-reform. The effect
+# then fades and eventually turns negative in later years.
+# This pattern is qualitatively consistent with Wolfers (2006), who argues that
+# unilateral divorce laws caused a temporary spike in divorce rates that largely
+# reversed over time.
+# The specification with state-specific linear trends gives a similar result but
+# without the statistically significant long term decrease in divorce rates.
+# By contrast, the quadratic-trend specification is problematic: it shows strong
+# positive pre-treatment coefficients and large negative post-treatment effects.
+# This, most likely, is a consequence of over-controling the counterfactual trend
+# with the state-specific quadratic trend partly absorbing the effect of unilateral
+# divorce laws, which is itself highly dynamic and curved over time.
+# Overall, at least for base and linear-trend cases, the Sun–Abraham estimator adds
+# to the evidence of no apparent pre-trends and also affirms that the post-reform
+# estimate dynamics are not artifacts of staggered contamination. The question of
+# whether the base case's reversal is a true effect or caused by omitted trends
+# remains open.
 
 # Exercise 2
 
