@@ -456,7 +456,6 @@ dummy_maker <- function(tau) {
   as.numeric(tau == data$year - data$lfdivlaw)
 }
 
-
 names_list <- ifelse(dyn_values < 0,
                       paste0("dummy_m", abs(dyn_values)),
                       paste0("dummy_", dyn_values))
@@ -475,95 +474,63 @@ data <- data %>%
   )%>%
   filter(year>=1956 & year<=1988)
 
-## (i) group + time FE only
+## (i), (ii), (iii)
 dummy_cols <- c(names_list, "dummy_lead10", "dummy_lag15")
 
-mod1 <- feols(as.formula(paste("div_rate ~", paste(dummy_cols, collapse = " + "), "| st + year")),
-                weights = ~stpop, cluster = ~st, data = data)
-
-## (ii) linear trends
-mod2 <- feols(as.formula(paste("div_rate ~", paste(dummy_cols, collapse = " + "), "| st + year + st[year]")),
-                 weights = ~stpop, cluster = ~st, data = data)
-
-## (iii) quadratic trends
-mod3 <- feols(as.formula(paste("div_rate ~", paste(dummy_cols, collapse = " + "), "| st + year + st[year] + st[year^2]")),
+mod1 <- feols(as.formula(paste("div_rate ~", paste(dummy_cols, collapse = " + "), "| st + year + csw0(st[year], st[year^2])")),
                   weights = ~stpop, cluster = ~st, data = data)
 
 summary(mod1)
-summary(mod2)
-summary(mod3)
 
 # Adding leads and lags of the treatment dummy is useful because it allows one to
-# investigate how treatment effect changes over time. While standard DiD assumes
-# that the treatment effect is constant over time and units, we can thus confirm
+# investigate how treatment effect changes over time. As standard DiD assumes
+# a common baseline trend for the treatment and control groups, we can thus test
 # whether there were pre-trends and anticipation effect prior to the reform taking
 # place, and whether the post-reform effect is temporary, delayed, growing in time,
 # fading or reversing.
-# Including state-specific linear/quadratic trends in the model means assuming that
-# untreated outcomes differ by a linear/quadratic drift across states.
-# We continue to use state populations as weights and to cluster SEs at the state level.
 
-# The first regression, i.e. the basic event-study specification with state and
-# year fixed effects, shows that the first two post-treatment dummies, i.e. D_1, D_2, equal
-# 0.33 and 0.3 respectively, are statistically significant at the 5% level; no
-# leading coefficients are significant; the output also shows that D_5 and the most distant
-# lagging coefficients, from D_11 to D_15, are significant at the same level. Since this
-# result seems hard to interpret, it is best to first observe the other two, more
-# flexible models to see if it is persistent.
+# For all three regressions, pre-reform leading coefficients are all individually
+# insignificant, providing no obvious evidence of pre-trends or anticipation effects.
 
-# The second regression with the smooth, state-specific linear drift shows that only
-# the coefficients on D_1, D_2, D_3, D_5, D_6 are statistically significant at the 5% level.
+# For the post-reform path, the first regression shows that two immediate post-treatment
+# effects, D_1, D_2, and the 5-periods-out effect, D_5, are positive and statistically
+# significant at the 5% level (0.34, 0.3, 0.25, respectively). Also, the most distant
+# post-treatment coefficients, from D_11 to D_15, are negative and significant at
+# the 5% level.
+# The second regression, with state-specific linear drift, shows that only immediate
+# post-treatment effects, D_1, D_2, D_3, D_5, D_6, are positive and statistically
+# significant at the 5% level.
+# For the third regression, only the first two post-treatment coefficients are significant
+# at the 5% level and positive.
 
-# For the third regression, only the first two lagging coefficients appear significant.
-# D_1, D_2 cluster around 0.25-0.4 across all three specifications, suggesting
-# robustness for an immediate transitory treatment effect.
+# D_1, D_2 remain statistically significant and cluster around 0.25-0.4 across all
+# three specifications, giving robust evidence of an immediate short-run treatment effect.
 
-# While the inclusion of state-specific trends may control for omitted slow-moving
-# confounders correlated  with treatment timing, Wolfers (2003) shows that
-# when the treatment effect follows a non-monotonic dynamic path, as is the case here,
-# with divorce rates spiking then declining, then state-specific trends can
-# partially absorb the treatment effect itself.
-# Thus the sensitivity of our results to including state-specific trends
-# is itself informative: it does not necessarily imply that some omitted variable bias
-# from state-specific sources was present in the basic model; it may instead signal that
-# trends are soaking up genuine treatment variation.
+# Left unclear is the interpretation of the apparent reduction of divorce rates
+# a decade after the reforms, which is statistically significant only for the basic
+# TWFE regression.
+# Reiterating our discussion in (e), while the inclusion of state-specific trends
+# may control for omitted slow-moving confounders correlated with treatment timing,
+# Wolfers (2006) shows that when the treatment effect follows a non-monotonic dynamic
+# path, as might also be the case here, then state-specific trends could partially
+# absorb the treatment effect itself.
+# Thus, the sensitivity of our results to including state-specific trends remains
+# unexplained: it does not necessarily imply that omitted variable bias from state-specific
+# trends is present and that the reversal results should be discarded; it may instead
+# signal that the trends are soaking up genuine treatment dynamics.
 
-# Evidently, performing this analysis allows us note that: firstly, there
-# is no strong evidence of pre-trends and anticipation effects; secondly, the
-# post-reform dynamic pattern gives some evidence that state-level divorce rates were
-# impacted by the reforms only in the immediate years after implementation;
-# lastly, this effect likely slowed down within the first ten years, with rates
-# gradually returning to baseline levels.
-
-# Since the significance of D_11-D_15 displayed by the first model is not robust
-# to the inclusion of state-specific drifts, we could interpret it as a byproduct
-# of failing to control for omitted state-specific trends and ignore it.
-# An alternative interpretation of the fading and eventual reversal of the lagging
-# coefficients is a mechanical compositional effect on the marriage pool, as discussed
-# in Wolfers (2006). Unilateral divorce law facilitates the dissolution of "bad"
-# marriages, that is, those in which at least one spouse preferred divorce but
-# could not obtain consent. As these marriages are resolved in court, the remaining
-# stock of marriages is of relatively better "quality", lowering the aggregate desire
-# of divorce and mechanically reducing divorce rates a decade or more after reform.
-# Under this reading, the insignificance of the most remote lagging coefficients does not
-# necessarily imply that the treatment effect was temporary, but rather that the
-# treatment had the secondary effect of lowering divorce "risk" via the mechanism
-# of improving aggregate marriage quality.
-
-# Nevertheless, as will be discussed in point (l), the staggered implementation setting
-# remains a methodological problem: event with separate lead/lag dummies, the individual
-# coefficients are a weighted average of different cohort effects, i.e., mixing
-# the treatment effects for diffent relative periods.
-# Thus, these results – no pre-trends and an immediate but transitory effect – could
-# still be spurious.
+# Nevertheless, as will be discussed in (l), Sun and Abraham conclude that the staggered
+# implementation setting remains a methodological problem by itself: even with separate
+# lead/lag dummies, the individual coefficients are a weighted average of different
+# cohort effects, mixing treatment effects for diffent relative periods.
+# Thus, these results – no obvious pre-trends and a short-run positive effect –
+# should still be interpreted cautiously.
 
 ################################################################################
 # (j)
 ################################################################################
 
 library(broom)
-library(stringr)
-library(readr)
 
 extract_eventstudy <- function(model, model_name) {
   tidy(model, conf.int = TRUE) %>%
