@@ -32,7 +32,7 @@ data <- read.csv("files/pset_2.csv", sep = ";", )
 # Larger states may provide estimates with lower variance, so weighting by population
 # accounts for heteroskedasticity and ensures that estimates are representative
 # of the U.S. population.
-# Likewise, when aggregating divorce rates for vizualizations, analytic weights
+# Likewise, when aggregating divorce rates for visualizations, analytic weights
 # allow to construct population-weighted average divorce rates.
 
 # Frequency weights are not relevant, since the divorce rates are state-year specific.
@@ -140,13 +140,13 @@ ggsave("out/Q1_b_2.png")
 
 # The graphs give mixed visual support for the parallel trends assumption.
 # Concretely, treated states have consistently higher divorce rates, but that is
-# not a problem per se as a DiD setting controls for baseline differences.
+# not a problem per se, since the DiD setting controls for baseline differences.
 # However, the pre-reform (1956–1968) evolution of the difference in divorce rates
 # in treated states compared to the control group has a mild upward trend.
 # In particular, the difference between the two groups prior to the reform period
 # in the first (second) graph goes from 1.22 (1.24) to 1.55 (1.71) divorces per 1,000 people.
-# From the graphs alone, we cannot assess whether these increases are statistically significant.
-# Therefore, the graphs do not serve as clear visual support for the parallel trends assumption.
+# We cannot assess whether these increases are statistically significant from the graphs alone.
+# Therefore, we do not have clear support for the parallel trends assumption.
 
 ################################################################################
 # (c)
@@ -182,11 +182,11 @@ summary(did_1)
 # as the regression does not control for pre-treatment differences in average treatment
 # and control group divorce rates.
 # In the full DiD specification (ii), the interaction term is the DiD estimate for
-# the effect of treatment on divorce rates. It is is both economically and statistically
+# the effect of treatment on divorce rates. It is both economically and statistically
 # insignificant: -0.005 (SE: 0.202).
-# From the earlier graphs we see that, the positive and statistically significant
-# estimate for POST_UNILATERAL in regression (i) is picking up the treated group
-# having higher divorce rates on average, as the estimated coefficient did not account
+# From the earlier graphs we see that the positive and statistically significant
+# estimate for POST_UNILATERAL in regression (i) picks up that the treated group
+# has higher divorce rates on average, as the estimated coefficient did not account
 # for these baseline differences. For the second regression, after the reforms,
 # both groups continued to see increases in divorce rates, but the gap between the
 # two did not meaningfully widen, explaining the small and insignificant DiD estimate.
@@ -324,8 +324,8 @@ summary(feols(sw(Y, Y2, Y3, Y4)  ~ D | state + year, data = df))
 # respectively, clearly different in magnitude and sign from the common 0.05 effect.
 
 # Per de Chaisemartin and d'Haultfoeuille, with staggered treatment adoption, the
-# TWFE coefficient is a weighted average of group-time ATTs. Nothing prevents those
-# weights from being negative, so even with positive ATTs, the sign on the TWFE
+# TWFE coefficient is a weighted average of group-time ATTs. As nothing prevents those
+# weights from being negative, even with positive ATTs, the sign on the TWFE
 # estimate can be negative if negative-weighted ATTs overpower the rest.
 
 # In fact, the de Chaisemartin decomposition computes weights on each treated cell
@@ -442,7 +442,7 @@ ggsave("out/Q1_h.png", width = 9)
 # Bacon weights are positive by construction – the Bacon decomposition assigns weights
 # proportional to subsample size and variance of treatment in that subsample, both
 # of which are non-negative. Thus, there is no negative weight problem in the Bacon decomposition itself.
-# Heterogenous/dynamic treatment effect issues show up in the Bacon decomposition
+# Heterogeneous/dynamic treatment effect issues show up in the Bacon decomposition
 # not in the weights but in contaminated 2x2 comparisons – Later vs Earlier Treated
 # and Later vs Always Treated –, where already-treated units act as controls.
 
@@ -494,7 +494,7 @@ summary(mod1)
 # Adding leads and lags of the treatment dummy is useful because it allows one to
 # investigate how treatment effect changes over time. As standard DiD assumes
 # a common baseline trend for the treatment and control groups, we can thus test
-# whether there were pre-trends and anticipation effect prior to the reform taking
+# whether there were pre-trends and anticipation effects prior to the reform taking
 # place, and whether the post-reform effect is temporary, delayed, growing in time,
 # fading or reversing.
 
@@ -521,17 +521,18 @@ summary(mod1)
 # Reiterating our discussion in (e), while the inclusion of state-specific trends
 # may control for omitted slow-moving confounders correlated with treatment timing,
 # Wolfers (2006) shows that when the treatment effect follows a non-monotonic dynamic
-# path, as might also be the case here, then state-specific trends could partially
+# path, as might also be the case here, then state-specific trends can partially
 # absorb the treatment effect itself.
 # Thus, the sensitivity of our results to including state-specific trends remains
 # unexplained: it does not necessarily imply that omitted variable bias from state-specific
 # trends is present and that the reversal results should be discarded; it may instead
-# signal that the trends are soaking up genuine treatment dynamics.
+# signal that the trends are soaking up genuine treatment dynamics. This last
+# explanation is the one favored by Wolfers himself.
 
 # Nevertheless, as will be discussed in (l), Sun and Abraham conclude that the staggered
-# implementation setting remains a methodological problem by itself: even with separate
+# implementation setting itself remains a methodological problem: even with separate
 # lead/lag dummies, the individual coefficients are a weighted average of different
-# cohort effects, mixing treatment effects for diffent relative periods.
+# cohort effects, mixing treatment effects for different relative periods.
 # Thus, these results – no obvious pre-trends and a short-run positive effect –
 # should still be interpreted cautiously.
 
@@ -586,7 +587,7 @@ ggsave("out/Q1_j.png")
 # (k)
 ################################################################################
 
-# Once considering state-specific linear or quadratic trends, Friedberg (1998) concludes
+# Including state-specific linear or quadratic trends, Friedberg (1998) concludes
 # that unilateral divorce laws substantially and persistently raised divorce rates,
 # accounting for a meaningful share of the rise in divorce rates after the late 1960s.
 # Wolfers (2006), in contrast, finds that the effect is mainly temporary: divorce
@@ -652,7 +653,7 @@ dev.off()
 # without the statistically significant long term decrease in divorce rates.
 # By contrast, the quadratic-trend specification is problematic: it shows strong
 # positive pre-treatment coefficients and large negative post-treatment effects.
-# This likely is a consequence of over-controling the counterfactual trend
+# This likely is a consequence of over-controlling the counterfactual trend
 # with the state-specific quadratic trend partly absorbing the effect of unilateral
 # divorce laws, which is itself highly dynamic and curved over time.
 # Overall, at least for base and linear-trend cases, the Sun–Abraham estimator adds
@@ -714,7 +715,7 @@ diagn_imp
 
 # The most important variable in terms of the splitting frequency-based heuristic
 # is religious adherence, so heterogeneity is strongly associated with it.
-# Women labor force participation is the second most important variable, followed
+# Women's labor force participation is the second most important variable, followed
 # by education rate and domestic violence rate. Urbanization, however, has almost
 # zero importance, so it contributes little to the forest's splits.
 # Anyways, variable importance is only a heuristic and should not be interpreted
@@ -836,7 +837,7 @@ ggsave("out/Q2_b_3.png")
 # near-zero estimated treatment effects.
 # This pattern is much stronger than for the other covariates and is consistent
 # with both the variable-importance ranking and the BLP results. So, for ease of
-# vizualization, we split the sample into two groups: counties with religious adherence
+# visualization, we split the sample into two groups: counties with religious adherence
 # below and above 50.
 # Women's labor force participation and domestic violence also show some positive,
 # but weaker, association with the CATE. Other variables show weaker and less stable patterns.
@@ -848,7 +849,7 @@ ggsave("out/Q2_b_3.png")
 # It should be noted that because treatment varies at the state level while the
 # causal forest is estimated on county-level observations, the source of independent
 # treatment variation is the state, not the county. So, the county-level heterogeneity
-# patterns should be interpreted cautiously.
+# patterns should be interpreted extremely cautiously.
 
 # Taking that into account, our results provide some suggestive evidence of heterogeneous
 # treatment effects, even though the overall ATE is close to zero.
@@ -916,7 +917,7 @@ ggsave("out/Q2_d_2.png")
 # Without honesty, variable importance becomes even more concentrated on religious
 # adherence and the distribution of predicted CATEs becomes much more spread out.
 # This suggests that the dishonest forest is fitting stronger and potentially noisier
-# heterogeneity patterns. Therefore, honest forests are more thrustworthy for interpreting
+# heterogeneity patterns. Therefore, honest forests are more trustworthy for interpreting
 # CATEs, even though both approaches give almost the same ATE.
 # One could expect the difference between honest and dishonest forests to be larger
 # in smaller samples, with noisier outcomes, weaker overlap, deeper trees,
