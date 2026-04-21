@@ -168,8 +168,8 @@ did_1 <- feols(div_rate ~ POST * UNILATERAL, data = data_3, weights = ~stpop, cl
 summary(did_1)
 
 # For regressions, where possible, we cluster standard errors by state.
-# The pooled OLS regression (i) shows that, in 1978, treated states are associated with 1.70
-# more divorces per 1,000 people compared to the control states, controlling for
+# The pooled OLS regression (i) shows that, in 1978, treated states are associated
+# with 1.70 more divorces per 1,000 people compared to the control states, controlling for
 # the average change in divorce rates common for both groups. This is statistically
 # significant at the 0.1% level. The estimate lacks a causal DiD interpretation
 # as the regression does not control for pre-treatment differences in average treatment
@@ -177,16 +177,16 @@ summary(did_1)
 # In the full DiD specification (ii), the interaction term is the DiD estimate for
 # the effect of treatment on divorce rates. It is is both economically and statistically
 # insignificant: -0.005 (SE: 0.202).
-# The earlier graphs support this idea, with the control and treatment groups following
-# similar trends pre-treatment. Further, after the reforms, both groups continued
-# to see increases in divorce rates, but the gap between the two did not meaningfully
-# widen. Instead, the two moved in parallel, explaining the small and insignificant
-# DiD estimate in the second specification. Furthermore, the positive and statistically
-# significant estimate for POST_UNILATERAL in regression (i) is corroborated by
-# the treated group having higher divorce rates on average, as the estimated coefficient
-# did not account for these baseline differences.
+# From the earlier graphs we see that, the positive and statistically significant
+# estimate for POST_UNILATERAL in regression (i) is picking up the treated group
+# having higher divorce rates on average, as the estimated coefficient did not account
+# for these baseline differences. For the second regression, after the reforms,
+# both groups continued to see increases in divorce rates, but the gap between the
+# two did not meaningfully widen, explaining the small and insignificant DiD estimate.
 
+################################################################################
 # (d)
+################################################################################
 
 data_3 <- na.omit(data_3)
 
