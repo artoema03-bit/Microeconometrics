@@ -179,7 +179,7 @@ ggplot(bacon_output, aes(x = weight, y = estimate, color = type)) +
 # estimates themselves: the Later vs Earlier Treated dots are the contaminated
 # comparisons where already-treated units act as controls.
 
-# Negativity in the Bacon decomposition shows up in the 2x2 DiD themselves, and is not 
+# Bias in the Bacon decomposition shows up in the 2x2 DiD themselves, and is not 
 # inherently problematic, as a negative 2x2 DiD could reflect a true negative effect. 
 # However, the fact that  "Later vs Earlier Treated" and "Later vs Always Treated" 
 # comparisons use already-treated units as controls make them invalid DiDs under 
