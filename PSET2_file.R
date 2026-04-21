@@ -693,26 +693,31 @@ diagn_imp <- tibble(
 diagn_imp
 
 
-# The most important variable in terms of splitting frequency is religious adherence, so heterogeneity is strongly associated with it.
-# Women labor force participation is the second most important variable, followed by education rate and domestic violence rate.
-# Urbanization, however, has almost zero importance, so it contributes very little to the forest's treatment effect heterogeneity.
-# Anyways, variable importance is only a heuristic and should not be interpreted as a causal ranking of covariates.
+# The most important variable in terms of splitting frequency is religious adherence,
+# so heterogeneity is strongly associated with it. Women labor force participation
+# is the second most important variable, followed by education rate and domestic
+# violence rate. Urbanization, however, has almost zero importance, so it contributes
+# little to the forest's splits.
+# Anyways, variable importance is only a heuristic and should not be interpreted
+# as a causal ranking of covariates.
 
 ## Best linear projection
 diagn_blp <- best_linear_projection(mod_base, data_exp_covar)
 diagn_blp
 
-# It shows which observables
-
-# The best linear projection is a doubly robust linear model of the estimated CATEs on covariates.
-# As a summary, it describes which observables are associated with more or less positive predicted treatment effects.
-# The BLP also shows that heterogeneity is mainly related to religious adherence, women's labor force participation, and, more weakly, domestic violence.
-# The coefficient on religious_adherence_1968 is negative and highly significant:
-# counties with higher religious adherence tend to have less positive (more negative) estimated treatment effects.
-# The coefficient on women_labor_force_participation_1968 is positive and significant:
-# counties with higher female labor force participation tend to have more positive estimated treatment effects.
-# The coefficient on domestic_violence_rate_1968 is positive and only weakly significant, its role is less precisely estimated.
-# Other covariates are not statistically significant, so there is little evidence that they are linearly related to the CATE.
+# The best linear projection is a doubly robust linear projection of the estimated
+# CATEs on covariates. As a summary, it describes which observables are associated
+# with more or less positive predicted treatment effects.
+# The BLP shows that heterogeneity is linearly related to religious adherence, women's
+# labor force participation, and, more weakly, domestic violence. The coefficient
+# on religious_adherence_1968 is negative and highly significant: counties with
+# higher religious adherence tend to have less positive (more negative) estimated
+# treatment effects. The coefficient on women_labor_force_participation_1968 is
+# positive and significant: counties with higher female labor force participation
+# tend to have more positive estimated treatment effects. The coefficient on domestic_violence_rate_1968
+# is positive and only weakly significant, its role is less precisely estimated.
+# Other covariates are not statistically significant, so there is little evidence
+# that they are linearly related to the CATEs.
 
 ## TOC
 set.seed(88888)
@@ -761,15 +766,19 @@ plot(diagn_rate)
 dev.off()
 
 
-# The TOC checks whether the causal forest is actually good at ranking units by treatment effect.
-# For a given fraction of treated units, it compares the ATE among the top-ranked units to the overall ATE.
-# The AUTOC is the area under this curve: a positive and statistically significant AUTOC indicates the ranking contains useful heterogeneity information.
+# The TOC checks whether the causal forest is actually good at ranking units by
+# treatment effect. For a given fraction of top-ranked treated units, it compares
+# the ATE among these units to the overall ATE. The AUTOC is the area under this
+# curve: a positive and statistically significant AUTOC indicates the ranking contains
+# useful heterogeneity information.
 
-# The TOC is evaluated out of sample, splitting observations at the state-level as treatment is assigned at the state level.
-# The TOC curve is mostly above zero for low and intermediate treated fractions, which means that the observations ranked by the forest as having high
-# treatment effects do tend to have higher-than-average effects.
-# The AUTOC is about 0.28 with a fairly wide confidence interval (+/- 0.29), so this evidence is rather suggestive than conclusive.
-# Overall, the TOC supports the idea that the forest captures some real heterogeneity and is able to rank observations by treatment effect better than chance.
+# We evaluate the TOC out of sample, splitting observations at the state-level as
+# treatment is assigned at the state level. The TOC curve is mostly above zero for
+# low and intermediate treated fractions, which means that the observations ranked
+# by the forest as having high treatment effects do tend to have higher-than-average effects.
+# However, the AUTOC is about 0.28 with a wide confidence interval (+/- 0.29), so
+# this evidence is only suggestive of the idea that the forest captures real heterogeneity
+# and is able to rank observations by treatment effect better than chance.
 
 ## CATEs
 mod_cate <- predict(mod_base)$predictions
@@ -780,16 +789,8 @@ png("out/Q2_b_2.png")
 hist(mod_cate)
 dev.off()
 
-# The histogram of estimated CATEs shows substantial dispersion around zero, suggesting that treatment effects are not constant across observations.
-# There is a cluster of observations with negative predicted effects and a cluster with positive ones, consistent with the near-zero ATE hiding heterogeneity.
-
-data_exp_covar %>%
-  as_tibble() %>%
-  mutate(cate = mod_cate) %>%
-  mutate(`Religious adherence` = if_else(religious_adherence_1968 < 50, "Low", "High")) %>%
-  ggplot(aes(x = cate, fill = `Religious adherence`)) + geom_density(alpha = 0.3)
-
-ggsave("out/Q2_b_3.png")
+# The histogram of estimated CATEs shows substantial dispersion around zero, consistent
+# with treatment effect heterogeneity.
 
 data_exp_covar %>%
   as_tibble() %>%
@@ -805,17 +806,21 @@ data_exp_covar %>%
   facet_wrap(~ variable, scales = "free_x") +
   labs(color = "Religious\nadherence")
 
-ggsave("out/Q2_b_4.png")
+ggsave("out/Q2_b_3.png")
 
 # We plot the estimated CATEs with respect to the 8 most important covariates.
-# The CATE plots are consistent with the other diagnostics and suggests that the clearest source of treatment effect heterogeneity is religious_adherence_1968.
-# There is a non-linear relation between CATEs and religious adherence:
-# counties with low religious adherence tend to have positive estimated treatment effects,
-# while counties with high religious adherence tend to have negative or near-zero estimated treatment effects.
-# This pattern is much stronger than for the other covariates and is consistent with both the variable-importance ranking and the BLP results.
-# So, for ease of vizualization, we split the sample into two groups: counties with religious adherence below and above 50.
-# Women's labor force participation and domestic violence also show some positive, but weaker, association with the CATE.
-# Other variables appear to play almost no role.
+# The CATE plots are consistent with the other diagnostics and suggests that the
+# clearest source of treatment effect heterogeneity is religious_adherence_1968.
+# There appears to be a non-linear relation between CATEs and religious adherence:
+# counties with low religious adherence tend to have positive estimated treatment
+# effects, while counties with high religious adherence tend to have negative or
+# near-zero estimated treatment effects.
+# This pattern is much stronger than for the other covariates and is consistent
+# with both the variable-importance ranking and the BLP results. So, for ease of
+# vizualization, we split the sample into two groups: counties with religious adherence
+# below and above 50.
+# Women's labor force participation and domestic violence also show some positive,
+# but weaker, association with the CATE. Other variables show weaker and less stable patterns.
 
 # c
 
