@@ -22,13 +22,13 @@ data <- read.csv("files/pset_2.csv", sep = ";", )
 #Exercise 1
 
 # (a)
-# We must use analytic weights
+# We must use analytic weights.
 # We do so because the dependent variable (divorce rate per 1,000 people) is a mean
 # computed from state-level populations (stpop) of different sizes.
 
-# Larger states may provide estimates with lower variance, so weighting
-# by population accounts for heteroskedasticity and ensures that estimates
-# are representative of the U.S. population.
+# Larger states may provide estimates with lower variance, so weighting by population
+# accounts for heteroskedasticity and ensures that estimates are representative
+# of the U.S. population.
 # Likewise, when aggregating divorce rates for vizualizations, analytic weights
 # allow to construct population-weighted average divorce rates.
 
@@ -36,8 +36,8 @@ data <- read.csv("files/pset_2.csv", sep = ";", )
 # Using them would imply div_rate would be observed as if each observation were
 # repeated stpop times.
 
-# Probability weights are necessary when when data come from a random
-# sample rather than the full population, this is not relevant in this scenario.
+# Probability weights are necessary when when data come from a random sample rather
+# than the full population, this is not relevant in this scenario.
 
 # (b)
 # (i)
@@ -880,14 +880,23 @@ data_exp_covar %>%
 
 ggsave("out/Q2_d_2.png")
 
-# Honest trees use one part of the sample to construct the tree by choosing splits and another part to estimate treatment effects within terminal leaves.
-# This reduces overfitting, makes CATE estimation more credible and allows for asymptotic inference.
-# In our results, disabling honesty barely changes the estimated ATE: the honest forest gives about 0.0343 and the dishonest forest about 0.0339.
-# So, honesty is not very important for the average treatment effect in this sample, but it does have an effect on treatment effect heterogeneity.
-# Without honesty, variable importance becomes even more concentrated on religious adherence
-# and the distribution of predicted CATEs becomes much more spread out.
-# This suggests that the dishonest forest is fitting stronger and potentially noisier heterogeneity patterns.
-# Therefore, honest forests are more thrustworthy for interpreting CATEs, even though both approaches give almost the same ATE.
-
-# One could expect the difference between honest and dishonest forests to be larger in smaller samples, with more varying outcomes, weaker overlap, deeper trees, or many relatively covariates.
-# In these cases, using the same data both for model construction and effect estimation raises the risk of overfitting and a biased ATE.
+# Honest trees use one part of the sample to construct the tree by choosing splits
+# and another part to estimate treatment effects within terminal leaves. This reduces
+# overfitting, makes CATE estimation more credible and allows for valid asymptotic
+# inference. Without splitting the sample, the same potentially noisy outcomes are
+# used to choose the tree splits and then to estimate leaf treatment effects, exaggerating
+# estimated heterogeneity.
+# In our results, disabling honesty barely changes the estimated ATE: the honest
+# forest gives about 0.0343 and the dishonest forest about 0.0339. So, honesty is
+# not very important for the average treatment effect in this sample, but it does
+# have an effect on treatment effect heterogeneity.
+# Without honesty, variable importance becomes even more concentrated on religious
+# adherence and the distribution of predicted CATEs becomes much more spread out.
+# This suggests that the dishonest forest is fitting stronger and potentially noisier
+# heterogeneity patterns. Therefore, honest forests are more thrustworthy for interpreting
+# CATEs, even though both approaches give almost the same ATE.
+# One could expect the difference between honest and dishonest forests to be larger
+# in smaller samples, with noisier outcomes, weaker overlap, deeper trees,
+# or relatively many covariates. In these cases, using the same data both for model
+# construction and effect estimation makes the risk of overfitting noise worse,
+# potentially changing the ATE.
