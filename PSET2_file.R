@@ -132,13 +132,15 @@ ggplot(data_2, aes(x = year, y = Y, color = factor(TREATED))) +
 
 ggsave("out/Q1_b_2.png")
 
-# The graphs show broadly consistent support for the parallel trends assumption.
-# Concretely, despite consistently higher divorce rates, the evolution of treated states before the
-# reform appears to be similar to the control group. In particular, the difference
-# between the two groups remains relatively stable: fluctuating around a roughly
-# constant level of about 1.3 (1.4) divorces per 1,000 people in the first graph
-# (in the second graph) prior to the reform period. The graphs show no obvious evidence
-# that the parallel trends assumption might be violated.
+# The graphs give mixed visual support for the parallel trends assumption.
+# Concretely, treated states have consistently higher divorce rates, but that is
+# not a problem per se as a DiD setting controls for baseline differences.
+# However, the pre-reform (1956–1968) evolution of the difference in divorce rates
+# in treated states compared to the control group has a mild upward trend.
+# In particular, the difference between the two groups prior to the reform period
+# in the first (second) graph goes from 1.22 (1.24) to 1.55 (1.71) divorces per 1,000 people.
+# From the graphs alone, we cannot assess whether these increases are statistically significant.
+# Therefore, the graphs do not serve as clear visual support for the parallel trends assumption.
 
 # (c)
 
