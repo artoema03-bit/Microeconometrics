@@ -670,13 +670,17 @@ mod_base
 
 average_treatment_effect(mod_base)
 
-# For the causal forest estimation, we use the 1968–1978 difference in county divorce rates as outcomes, conditioned on 1968 controls.
-# The estimation is also clustered at the state level, as that is the treatment assignment level.
-# The causal forest estimates an average treatment effect of about 0.034 with standard error 0.068,
-# so the average effect is small and not statistically different from zero.
-# This is consistent with our conclusion for 1.c.
-# Therefore, on average, unilateral divorce laws do not appear to have a clear effect on divorce rates in this restricted sample.
-# However, a near-zero ATE does not rule out TE heterogeneity as it may have arisen due to positive and negative effects offsetting each other in the average.
+# For the causal forest estimation, we use the 1968–1978 difference in county divorce
+# rates as outcomes, conditioned on 1968 controls.
+# The estimation is also clustered at the state level, as that is the treatment
+# assignment level.
+# The causal forest estimates an average treatment effect of about 0.034 with a
+# standard error 0.068, so the average effect is small and not statistically different
+# from zero, aligned with our conclusion for 1.c.
+# Therefore, on average, unilateral divorce laws do not appear to have a clear effect
+# on divorce rates in this restricted sample. However, a near-zero ATE does not
+# rule out TE heterogeneity as it may have arisen due to positive and negative effects
+# offsetting each other in the average.
 
 # b
 
