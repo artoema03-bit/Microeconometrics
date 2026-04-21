@@ -247,30 +247,36 @@ summary(regression_3)
 
 # (iii)
 
-data_4$year2 <- data_4$year^2
 regression_4 <- feols(
-  div_rate ~ IMP_UNILATERAL | st + year + st[year] + st[year2], cluster = ~ st, data = data_4, weights = ~ stpop
+  div_rate ~ IMP_UNILATERAL | st + year + st[year] + st[year^2], cluster = ~ st, data = data_4, weights = ~ stpop
 )
 summary(regression_4)
 
-# All regressions match with table A1 of appendix
+# All regressions match with Table A1 of the appendix in Wolfers (2006).
 
 # Regression (i), which assumes common trends for the control and treatment groups,
-# after controlling for state and year fixed effects, has a coefficient of -0.055
-# which is not statistically significant.
-# Regression (ii) has a coefficient of 0.476568 which is significant at the 5% level.
-# Regression (iii) has a coefficient of 0.334415 which is significant at the 5% level.
+# after controlling for state and year fixed effects, has a statistically insignificant
+# coefficient of -0.055.
+# Regressions (ii) and (iii), which include state-specific linear and quadratic trends,
+# have coefficients of 0.477 and 0.334, respectively, both significant at the 5% level.
 
-# Regressions (ii) and (iii) include state-specific linear and quadratic trends
-# and test whether the baseline results are robust to differential trajectories
-# across states. If the parallel trends assumption would hold, i.e., there were
-# no omitted diverging state trends, the coefficient should be similar to the one
-# estimated without including the linear/quadratic trends.
-# However, the differences in coefficients across regressions, especially the first
-# one against the latter two, suggests that treated and control groups may have
-# different underlying state-specific trends correlated with treatment timing.
-# This indicates that the simple parallel trends assumption might be violated and
-# the baseline regression may be biased by omitted state-specific trend heterogeneity.
+# The differences in coefficients across regressions suggest two interpretations.
+# First, the treated and control groups could have different underlying state-specific
+# trends correlated with treatment timing. Here, regressions (ii) and (iii) test
+# whether the baseline results are robust to differential trajectories across states.
+# The differences would indicate that the parallel trends assumption might be violated
+# and the baseline regression may be biased by omitted state-specific trend heterogeneity.
+
+# On the other hand, even under parallel trends, the treatment effect itself might
+# be dynamic, changing over time. In this case, a single-coefficient design implicitly
+# averages the underlying evolution of the treatment effect. Hence, the null coefficient
+# in (i) might represent an actual effect that later declines. So, including state-specific
+# trends would not correct for omitted heterogeneous trends, but could instead absorb
+# the post-reform reversal.
+
+# So, under the parallel trends assumption, i.e., with no omitted diverging state
+# trends, and with a time-invariant treatment effect, the estimated coefficients
+# should be similar across all specifications.
 
 ################################################################################
 # (f) Illustration of naivete of TWFE estimator
