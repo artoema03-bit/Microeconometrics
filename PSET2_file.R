@@ -403,6 +403,8 @@ bacon_output <- bacon(
 )
 bacon_output
 
+weighted.mean(bacon_output$estimate, bacon_output$weight)
+
 ggplot(bacon_output, aes(x = weight, y = estimate, color = type)) +
   geom_point(size = 3) +
   geom_hline(yintercept = 0, linetype = "dashed") +
@@ -414,45 +416,36 @@ ggplot(bacon_output, aes(x = weight, y = estimate, color = type)) +
   ) +
   geom_hline(yintercept = -0.029861, color = "red") +
   annotate("text", x = .23, y = -.1, label = "DD estimate = -0.0299", color = "red") +
+geom_hline(yintercept = -0.583842, color = "red") +
+  annotate("text", x = .225, y = -.65, label = "Bacon estimate = -0.5838", color = "red") +
   coord_cartesian(xlim = c(0, 0.25)) +
   theme_classic()
 
 ggsave("out/Q1_h.png", width = 9)
 
-# The weighted mean of these estimates should be exactly the same as our earlier
-# (naive) TWFE coefficient estimate. This is not exactly the case because of two
-# reasons: first, the bacon model is unweighted; second, it uses a balanced sample.
-
 # Goodman-Bacon (2021) show that "the TWFE DiD estimator is a weighted average of
 # all possible 2x2 estimators that compare timing groups to each other. Some use
 # units treated at a particular time as the treatment group and untreated units
 # as the control group.
-# Some compare units treated at two different times, using the later group as a control
-# before its treatment begins and then the earlier group as a control after its treatment begins."
+# Some compare units treated at two different times, using the later group as a
+# control before its treatment begins and then the earlier group as a control after
+# its treatment begins."
+# Bacon weights are positive by construction – the Bacon decomposition assigns weights
+# proportional to subsample size and variance of treatment in that subsample, both
+# of which are non-negative. Thus, there is no negative weight problem in the Bacon decomposition itself.
+# Heterogenous/dynamic treatment effect issues show up in the Bacon decomposition
+# not in the weights but in contaminated 2x2 comparisons – Later vs Earlier Treated
+# and Later vs Always Treated –, where already-treated units act as controls.
 
-# The plot shows that the DD's with the highest weights, and thus the most influential,
-# all belong to the Treated vs Untreated comparison type. This is somewhat reassuring, as
-# these are the cleanest comparisons (never-treated units as controls).
-# However, there is, in general, a wide dispersion in treatment effects
-# across comparisons, especially so for the more problematic Later vs Earlier Treated
-# and Later vs Always treated comparisons with ~17% of the weight.
-# This means that the TWFE estimate is averaging opposing underlying comparisons.
-
-# Note that all Bacon weights are positive by construction — the Bacon decomposition
-# assigns weights proportional to subsample size and variance of treatment in that
-# subsample, both of which are non-negative.
-# Negativity in the Bacon decomposition shows up not in the weights but in the 2x2
-# estimates themselves: the Later vs Earlier Treated dots are the contaminated
-# comparisons where already-treated units act as controls.
-
-# Negativity in the Bacon decomposition shows up in the 2x2 DiD themselves, and is not
-# inherently problematic, as a negative 2x2 DiD could reflect a true negative effect.
-# However, the fact that  "Later vs Earlier Treated" and "Later vs Always Treated"
-# comparisons use already-treated units as controls make them invalid DiDs under
-# treatment effect heterogeneity.
-
-# The de Chaisemartin decomposition reframes this: instead of positive weights on
-# negative estimates, it gives potentially negative weights directly on (positive) ATTs.
+# The weighted mean of these Bacon DD estimates differs from our earlier (naive)
+# TWFE coefficient because the Bacon decomposition is run on an unweighted, balanced sample.
+# The plot shows that the DD's with the highest weights, the most influential ones,
+# all belong to the Treated vs Untreated comparison type, which are the cleanest
+# comparisons (never-treated units as controls).
+# However, there is, in general, a wide dispersion in DD estimates across comparisons,
+# especially so for the more problematic Later vs Earlier Treated and Later vs Always
+# Treated comparisons with ~17% of the weight.
+# This means that the TWFE estimate is partly averaging opposing underlying comparisons.
 
 ################################################################################
 # (i)
