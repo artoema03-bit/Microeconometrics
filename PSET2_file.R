@@ -17,11 +17,14 @@ library(fixest)
 
 data <- read.csv("files/pset_2.csv", sep = ";", )
 
-# summary(data)
+################################################################################
+# Exercise 1
+################################################################################
 
-#Exercise 1
-
+################################################################################
 # (a)
+################################################################################
+
 # We must use analytic weights.
 # We do so because the dependent variable (divorce rate per 1,000 people) is a mean
 # computed from state-level populations (stpop) of different sizes.
@@ -39,7 +42,10 @@ data <- read.csv("files/pset_2.csv", sep = ";", )
 # Probability weights are necessary when when data come from a random sample rather
 # than the full population, this is not relevant in this scenario.
 
+################################################################################
 # (b)
+################################################################################
+
 # (i)
 
 data_1 <- data %>%
@@ -86,8 +92,8 @@ ggplot(data_1, aes(x = year, y = Y, color = factor(TREATED))) +
 ggsave("out/Q1_b_1.png")
 
 # States that adopted the law prior to the 1968-1988 period were removed from the
-# sample as they were "always treated", making them unviable for comparison as
-# members of the control group.
+# sample as they were "always treated", making them unviable for comparison as members
+# of the control group.
 
 # (ii)
 
@@ -142,7 +148,9 @@ ggsave("out/Q1_b_2.png")
 # From the graphs alone, we cannot assess whether these increases are statistically significant.
 # Therefore, the graphs do not serve as clear visual support for the parallel trends assumption.
 
+################################################################################
 # (c)
+################################################################################
 
 data_3 <- data %>%
   filter(
@@ -156,7 +164,6 @@ data_3 <- data %>%
     POST_UNILATERAL = (POST * UNILATERAL)
   )
 
-#
 # (i)
 
 regression_1 <- feols(div_rate ~ POST_UNILATERAL + POST, data = data_3, weights = ~stpop, cluster = ~st)
@@ -220,7 +227,9 @@ did_mat_xlsx <- cbind(Group = rownames(did_mat_xlsx), did_mat_xlsx)
 
 write_xlsx(did_mat_xlsx, "TABLE_1.xlsx")
 
+################################################################################
 # (e)
+################################################################################
 
 data_4 <- data %>%
   mutate(
@@ -414,11 +423,11 @@ ggplot(bacon_output, aes(x = weight, y = estimate, color = type)) +
     color = "Comparison type",
     title = "Goodman-Bacon decomposition"
   ) +
-  geom_hline(yintercept = -0.029861, color = "red") +
-  annotate("text", x = .23, y = -.1, label = "DD estimate = -0.0299", color = "red") +
-geom_hline(yintercept = -0.583842, color = "red") +
-  annotate("text", x = .225, y = -.65, label = "Bacon estimate = -0.5838", color = "red") +
-  coord_cartesian(xlim = c(0, 0.25)) +
+  # geom_hline(yintercept = -0.029861, color = "red") +
+  # annotate("text", x = .23, y = -.1, label = "DD estimate = -0.0299", color = "red") +
+  # geom_hline(yintercept = -0.583842, color = "red") +
+  # annotate("text", x = .225, y = -.65, label = "Bacon estimate = -0.5838", color = "red") +
+  # coord_cartesian(xlim = c(0, 0.25)) +
   theme_classic()
 
 ggsave("out/Q1_h.png", width = 9)
@@ -478,7 +487,7 @@ data <- data %>%
 dummy_cols <- c(names_list, "dummy_lead10", "dummy_lag15")
 
 mod1 <- feols(as.formula(paste("div_rate ~", paste(dummy_cols, collapse = " + "), "| st + year + csw0(st[year], st[year^2])")),
-                  weights = ~stpop, cluster = ~st, data = data)
+                weights = ~stpop, cluster = ~st, data = data)
 
 summary(mod1)
 
@@ -551,9 +560,9 @@ extract_eventstudy <- function(model, model_name) {
 }
 
 plot_data <- bind_rows(
-  extract_eventstudy(mod1, "FE only"),
-  extract_eventstudy(mod2, "FE + state linear trends"),
-  extract_eventstudy(mod3, "FE + state quadratic trends")
+  extract_eventstudy(mod1[[1]], "FE only"),
+  extract_eventstudy(mod1[[2]], "FE + state linear trends"),
+  extract_eventstudy(mod1[[3]], "FE + state quadratic trends")
 ) %>%
   arrange(model, event_time) %>%
   mutate(model = factor(model, c("FE only", "FE + state linear trends", "FE + state quadratic trends")))
@@ -573,15 +582,9 @@ ggplot(plot_data, aes(x = event_time, y = estimate)) +
 
 ggsave("out/Q1_j.png")
 
-# k
-
-library(grf)
-
-data_l <- data %>%
-  mutate (year = as.numeric (year))%>%
-  filter(year>=1956 & year<=1988)
-
-# k
+################################################################################
+# (k)
+################################################################################
 
 # Once considering state-specific linear or quadratic trends, Friedberg (1998) concludes
 # that unilateral divorce laws substantially and persistently raised divorce rates,
@@ -599,7 +602,13 @@ data_l <- data %>%
 # some divorces forward in time, with no robust evidence of a permanent increase
 # in the total number of divorces.
 
-# l
+################################################################################
+# (l)
+################################################################################
+
+data_l <- data %>%
+  mutate(year = as.numeric (year))%>%
+  filter(year>=1956 & year<=1988)
 
 data_event <- data_l %>%
   mutate(
@@ -623,6 +632,10 @@ mod_sunab %>%
 
 iplot(mod_sunab)
 
+png("out/Q1_l.png")
+iplot(mod_sunab)
+dev.off()
+
 # The Sun–Abraham correction addresses the contamination problem of standard TWFE
 # event studies under staggered adoption: TWFE lead and lag coefficients can mix
 # effects from different cohorts and relative periods, while Sun–Abraham estimates
@@ -639,21 +652,25 @@ iplot(mod_sunab)
 # without the statistically significant long term decrease in divorce rates.
 # By contrast, the quadratic-trend specification is problematic: it shows strong
 # positive pre-treatment coefficients and large negative post-treatment effects.
-# This, most likely, is a consequence of over-controling the counterfactual trend
+# This likely is a consequence of over-controling the counterfactual trend
 # with the state-specific quadratic trend partly absorbing the effect of unilateral
 # divorce laws, which is itself highly dynamic and curved over time.
 # Overall, at least for base and linear-trend cases, the Sun–Abraham estimator adds
 # to the evidence of no apparent pre-trends and also affirms that the post-reform
-# estimate dynamics are not artifacts of staggered contamination. The question of
-# whether the base case's reversal is a true effect or caused by omitted trends
-# remains open.
+# estimate dynamics are not artifacts of staggered contamination, remaining consistent
+# with Wolfers. The question of whether the base case's reversal is a true effect
+# or caused by omitted trends remains open.
 
+################################################################################
 # Exercise 2
+################################################################################
 
 data_base <- read_delim("files/expanded_data.csv") %>%
   mutate(st = factor(st), urbanization = if_else(urbanization == "Urban", 1, 0))
 
-# a
+################################################################################
+# (a)
+################################################################################
 
 data_exp <- data_base %>%
   filter(between(lfdivlaw, 1969, 1973) | lfdivlaw == 2000) %>%
@@ -682,7 +699,9 @@ average_treatment_effect(mod_base)
 # rule out TE heterogeneity as it may have arisen due to positive and negative effects
 # offsetting each other in the average.
 
-# b
+################################################################################
+# (b)
+################################################################################
 
 ## Variable importance
 diagn_imp <- tibble(
@@ -693,11 +712,11 @@ diagn_imp <- tibble(
 diagn_imp
 
 
-# The most important variable in terms of splitting frequency is religious adherence,
-# so heterogeneity is strongly associated with it. Women labor force participation
-# is the second most important variable, followed by education rate and domestic
-# violence rate. Urbanization, however, has almost zero importance, so it contributes
-# little to the forest's splits.
+# The most important variable in terms of the splitting frequency-based heuristic
+# is religious adherence, so heterogeneity is strongly associated with it.
+# Women labor force participation is the second most important variable, followed
+# by education rate and domestic violence rate. Urbanization, however, has almost
+# zero importance, so it contributes little to the forest's splits.
 # Anyways, variable importance is only a heuristic and should not be interpreted
 # as a causal ranking of covariates.
 
@@ -822,7 +841,9 @@ ggsave("out/Q2_b_3.png")
 # Women's labor force participation and domestic violence also show some positive,
 # but weaker, association with the CATE. Other variables show weaker and less stable patterns.
 
-# c
+################################################################################
+# (c)
+################################################################################
 
 # It should be noted that because treatment varies at the state level while the
 # causal forest is estimated on county-level observations, the source of independent
@@ -843,7 +864,9 @@ ggsave("out/Q2_b_3.png")
 # treatment is ineffective, but because positive and negative effects offset each
 # other across different counties.
 
-# d
+################################################################################
+# (d)
+################################################################################
 
 mod_dishonest <- causal_forest(data_exp_covar, Y = data_exp$outcome, W = data_exp$treated, num.trees = 10000, seed = 88888, honesty = FALSE, clusters = data_exp$st)
 mod_dishonest
