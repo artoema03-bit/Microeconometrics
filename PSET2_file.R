@@ -349,17 +349,15 @@ obj4 <- fun("Y4")
 obj1
 obj4
 
-# Under the common trends assumption, as obtained in part (f),
-# the TWFE coefficient beta obtained from regressing Y and Y4 on D is, respectively,
-# equal to 0.0445 and to -0.2003.
+# As obtained in (f), the TWFE coefficient from regressing Y and Y4 on D is, respectively,
+# 0.045 and -0.200.
 
-# The twowayfeweights output shows that the TWFE coefficient does not actually estimate
-# the true treatment effect, but rather, as mentioned in (f), a sum of 2 positively
-# weighted ATTs and one negatively weighted ATT (state 2 at time 3).
-# The weights are equal for all 4 regressions because the underlying treatment design
-# is the same.
-# The estimated effect's sign switches when regressing Y4 on D instead of Y because
-# the negatively weighted ATT gets larger, while the weight itself remains unchanged.
+# The twowayfeweights output shows that the TWFE coefficient represents, as mentioned
+# in (f), a weighted average of two positively-weighted group-time ATTs and one
+# negatively-weighted ATT (the already-treated state 2 at time 3). The ATT weights
+# remain equal for all 4 regressions as the underlying treatment design is the same.
+# Comparing Y4 to Y, the negatively-weighted ATT becomes large enough to turn the
+# estimated effect negative.
 
 ################################################################################
 # (h)
