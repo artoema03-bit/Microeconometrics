@@ -63,13 +63,45 @@ print(placebo_density_tests)
 # (g)
 ################################################################################
 
-rdplot(y = Y, x = X, y.label = "Outcome", x.label = "Running variable", nbins = 40)
+rdplot(y = data$Y,
+       x = data$X,
+       y.label = "Outcome",
+       x.label = "Running variable",
+       nbins = c(20,20),
+       binselect = "es"
+       )
 
 ################################################################################
 # (h)
 ################################################################################
 
+kernels = c("triangular", "uniform")
+
+rd_results <- lapply(kernels, function (k) {
+  rdrobust(
+    y = data$Y,
+    x = data$T,
+    p = 1,
+    kernel = k,
+  )
+})
+names(rd_results) <- kernels
+
+summary(rd_results$triangular)
+summary(rd_results$uniform)
+
+
+# Does electing a mayor from an Islamic party has a significant effect on the educational
+# attainment of women? Do results differ significantly for different kernel choices?
+
 
 ################################################################################
 # (i)
 ################################################################################
+
+global_rd <- lm(
+  Y ~ T + X + X^2 + X^3 + X^4 + T:X + T:X^2 + T:X^3 + T:X^4,
+  data = data
+)
+
+summary(global_rd)
