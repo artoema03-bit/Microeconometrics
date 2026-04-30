@@ -341,7 +341,10 @@ data_fraud <- read.csv("files/fraud_pcenter_final.csv", sep = ";") %>%
 
 # Gonzalez uses dist/distance, we use X_dist
 
-rdplot(data_fraud$cov, data_fraud$X_dist_aligned, p = 1)
+rdplot(data_fraud$cov, data_fraud$X_dist_aligned, p = 1,
+  x.label = "Running variable", y.label = "Coverage")
+
+ggsave("out/Q2_a.png")
 
 summary(rdrobust(data_fraud$cov, data_fraud$X_dist_aligned, p = 1, all = TRUE))
 
