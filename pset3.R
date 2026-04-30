@@ -78,8 +78,6 @@ balance
 
 stargazer(balance, type = "text", title="Table_1", digits=1, out="out/Table_1.txt")
 
-# Change the labels
-
 ################################################################################
 # (c)
 ################################################################################
@@ -113,8 +111,6 @@ p1 <- ggplot(df_h, aes(x = X, fill = side)) +
   geom_vline(xintercept = 0, linetype = "dashed", linewidth = 1) +
   labs(title = "Counts at Cutoff", x = "Running Variable", y = "Count") +
   theme_minimal()
-
-# print(p1)
 
 density_test <- rddensity(data$X)
 density_plot <- rdplotdensity(density_test, data$X, noPlot = TRUE, title = "Density at Cutoff", xlabel = "Running Variable", ylabel = "Density")
