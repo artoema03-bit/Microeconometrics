@@ -3,6 +3,8 @@
 .RData
 .Ruserdata
 
+out/
+
 *.png
 *.pdf
 *.xlsx
