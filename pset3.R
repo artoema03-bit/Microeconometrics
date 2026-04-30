@@ -255,8 +255,8 @@ all.equal(rd_results$triangular$coef[1], local_rd_w$coefficients[[2]])
 
 # Estimating a naive local linear regression results in a treatment effect estimate
 # of 3.06, which is slightly different from the 3.02 obtained in (h). This is because
-# while we use the same functional form and the same bandwiths, we do not use triangular kernel weights,
-# used in (h).
+# while we use the same functional form and the same bandwiths, we do not use triangular
+# kernel weights, used in (h).
 # Differences also arise for inference, where the linear regression estimate has
 # a slightly lower standard error than the (h) estimate (1.305 vs 1.427). This is
 # due to the use by rdrobust of a heteroskedasticity-robust nearest neighbor variance
