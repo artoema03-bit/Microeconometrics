@@ -103,19 +103,22 @@ rd_results <- lapply(kernels, function (k) {
     x = data$X,
     p = 1,
     kernel = k,
+    all = TRUE
   )
-})
-names(rd_results) <- kernels
+}) %>%
+  setNames(kernels)
 
 summary(rd_results$triangular)
 summary(rd_results$uniform)
 
+rd_optim_bw <- rd_results$triangular$bws[1,1]
+rd_optim_bw_b <- rd_results$triangular$bws[2,1]
 
 # Does electing a mayor from an Islamic party has a significant effect on the educational
 # attainment of women? Do results differ significantly for different kernel choices?
 
 # The point estimate is 3.02 with a triangular kernel, and 3.202 with a uniform one; both are
-# significant at the 1% level, with similar confidence intervals. Thus, we can
+# significant at the 5% level, with similar confidence intervals. Thus, we can
 # conclude that our results are robust to different kernel specifications.
 
 # The positive, statistically significant coefficient allows us to argue in favor of the
