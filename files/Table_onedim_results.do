@@ -10,10 +10,13 @@ set more off
 
 
 
-global dt "D:\Dropbox\Afghanistan\Submissions\AEJ_Applied\Replication"
-global dt "C:\Users\Robert\Dropbox\Afghanistan\Submissions\AEJ_Applied\Replication"
+// global dt "D:\Dropbox\Afghanistan\Submissions\AEJ_Applied\Replication"
+// global dt "C:\Users\Robert\Dropbox\Afghanistan\Submissions\AEJ_Applied\Replication"
+global dt "G:\Mans disks\zObsidian\04 Courses\20295 Microeconometrics\Problem Sets\microeconometrics-ps\files"
 
-global in "$dt\data"
+// global in "$dt\data"
+global in "$dt"
+global out "$dt"
 global tables "$dt\latex"
 
 
@@ -22,19 +25,19 @@ global tables "$dt\latex"
 * 		A. Data preparation and bandwidth calculations
 ********************************************************************************
 use "$out\fraud_pcenter_final.dta", clear
-recode region2 (3=1) (4=2)
+// recode region2 (3=1) (4=2)
 
 drop if conflict==1
 
 
-replace dist=dist/1000
-gen dist2=dist^2
-gen dist3=dist^3
-gen dist4=dist^4
-foreach i in 2 3 4 {
-	gen lat`i'=lat^`i'
-	gen lon`i'=lon^`i'
-}
+// replace dist=dist/1000
+// gen dist2=dist^2
+// gen dist3=dist^3
+// gen dist4=dist^4
+// foreach i in 2 3 4 {
+// 	gen lat`i'=lat^`i'
+// 	gen lon`i'=lon^`i'
+// }
 
 
 * Optimal bandwidth
@@ -43,10 +46,10 @@ replace temp=-dist if cov==0
 
 
 foreach var in /*600 95 ecc*/ comb comb_ind {
-		rdbwselect vote_`var' temp if ind_seg50==1, vce(cluster segment50)
+		rdbwselect vote_`var' temp if ind_seg50==1, vce(cluster segment50) masspoints(off)
 		scalar hopt_`var'=e(h_mserd)
 		forvalues r=1/2 {
-			rdbwselect vote_`var' temp if ind_seg50==1 & region2==`r', vce(cluster segment50)
+			rdbwselect vote_`var' temp if ind_seg50==1 & region2==`r', vce(cluster segment50) masspoints(off)
 			scalar hopt_`var'_`r'=e(h_mserd)
 	}
 }
