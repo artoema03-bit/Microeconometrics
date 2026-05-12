@@ -22,9 +22,11 @@ library(fixest)
 library(rdss)
 library(modelsummary)
 
+dir.create("out", showWarnings = FALSE)
+
 
 data <- read.csv("files/pset_3.csv", sep = ";", )
-summary(data)
+# summary(data)
 
 ################################################################################
 # Exercise 1
@@ -74,9 +76,13 @@ results <- sapply(covariates, \(var) {
 
 balance <- t(results)
 colnames(balance) <- c("Label", "MSE-Optimal Bandwidth", "RD Estimator", "p-value", "Effective Number of Observations" )
-balance
+# balance
 
-stargazer(balance, type = "text", title="Table_1", digits=1, out="out/Table_1.txt")
+stargazer(balance, type = "text", title="Table 1", digits=1, out="out/Table_1.txt")
+
+# All baseline covariate discontinuities are statistically insignificant at conventional
+# levels. This supports the identifying assumption that predetermined characteristics
+# vary smoothly at the cutoff.
 
 ################################################################################
 # (c)
@@ -98,7 +104,7 @@ graph_1 <- wrap_plots(graphs, ncol = 3)
 
 graph_1
 
-ggsave("out/Graph_1.png", graph_1, width = 25, height = 25)
+ggsave("out/Graph_1.png", graph_1, width = 15, height = 10, dpi = 300)
 
 ################################################################################
 # (d)
@@ -121,7 +127,7 @@ Graph_2 <- p1 + p2
 
 Graph_2
 
-ggsave("out/Graph_2.png", Graph_2, width = 25, height = 25)
+ggsave("out/Graph_2.png", Graph_2, width = 15, height = 10, dpi = 300)
 
 ################################################################################
 # (e)
@@ -132,7 +138,7 @@ summary(density_test)
 # Graphically, the histogram and density plot show that the running variable is
 # much more concentrated on the left of the cutoff overall, but it does not show
 # any noticeable bunching of the running variable near the cutoff.
-# Likewise, testing whether the running variable X's density jumps at cutoff yields
+# Likewise, testing whether the running variable's density jumps at cutoff yields
 # a t-statistic of -1.3937, with a p-value of 0.16. Thus, we fail to reject the
 # hypothesis that density is continuous at cutoff.
 # As a side note, the binomial tests, which check whether the number of observations
@@ -149,7 +155,7 @@ summary(density_test)
 
 cutoff_list <- c(-10, -5, 5, 10)
 
-placebo_density_tests <- map_dfr(cutoff_list, function(cut) {
+placebo_rd_tests <- map_dfr(cutoff_list, function(cut) {
   ttest_data <- if (cut < 0) subset(data, X < 0) else subset(data, X >= 0)
 
   ttest <- rdrobust(y = ttest_data$Y, x = ttest_data$X, c = cut)
@@ -161,7 +167,10 @@ placebo_density_tests <- map_dfr(cutoff_list, function(cut) {
   )
 })
 
-print(placebo_density_tests)
+colnames(placebo_rd_tests) <- c("Cutoff", "Bandwidth", "Coefficient", "P-value")
+
+placebo_rd_table <- kableExtra::kable(placebo_rd_tests, caption = "Placebo RD tests (Q1_f)", digits = 3)
+writeLines(placebo_rd_table, "out/Q1_f.txt")
 
 # No effect at any alternative cutoff is statistically significant, thus we fail
 # to detect a jump in the outcome at alternative thresholds.
@@ -174,9 +183,12 @@ print(placebo_density_tests)
 rdplot(
   y = data$Y,
   x = data$X,
+  p = 4,
   y.label = "Outcome",
   x.label = "Running variable",
-  nbins = c(20, 20)
+  nbins = c(20, 20),
+  binselect = "es",
+  title = "RD Plot"
 )
 
 ggsave("out/Q1_g.png")
@@ -204,10 +216,10 @@ summary(rd_results$uniform)
 rd_optim_bw <- rd_results$triangular$bws[1,1]
 rd_optim_bw_b <- rd_results$triangular$bws[2,1]
 
-# The point estimate is 3.02 with a triangular kernel, and 3.202 with a uniform one;
-# both are significant at the 5% level (conventional p-values 0.034 and 0.018, respectively),
-# with similar confidence intervals. Thus, we can conclude that our results are
-# robust to different kernel specifications.
+# The point estimate is 3.02pp with a triangular kernel, and 3.202pp with a uniform one;
+# considering conventional inference, both are significant at the 5% level (conventional
+# p-values 0.034 and 0.018, respectively), with similar confidence intervals. Thus,
+# we can conclude that our results are robust to different kernel specifications.
 
 # The positive, statistically significant coefficient allows us to argue in favor
 # of the hypothesis that electing a mayor from an Islamic party does positively
@@ -228,9 +240,9 @@ global_rd <- feols(
 
 summary(global_rd)
 
-# This global estimate should be interpreted cautiously, since high-order global
-# polynomials can be sensitive to functional-form choices and give substantial weight
-# to observations far from the cutoff.
+# The global estimate of 3.68pp, significant at the 5% level, should be interpreted
+# cautiously, since high-order global polynomials can be sensitive to functional-form
+# choices and give substantial weight to observations far from the cutoff.
 
 ################################################################################
 # (j)
@@ -253,7 +265,7 @@ all.equal(rd_results$triangular$coef[1], local_rd_w$coefficients[[2]])
 
 # Estimating a naive local linear regression results in a treatment effect estimate
 # of 3.06, which is slightly different from the 3.02 obtained in (h). This is because
-# while we use the same functional form and the same bandwiths, we do not use triangular
+# while we use the same functional form and the same bandwidth, we do not use triangular
 # kernel weights, used in (h).
 # Differences also arise for inference, where the linear regression estimate has
 # a slightly lower standard error than the (h) estimate (1.305 vs 1.427). This is
@@ -267,7 +279,9 @@ all.equal(rd_results$triangular$coef[1], local_rd_w$coefficients[[2]])
 ################################################################################
 
 # Varying bandwidths
-bws <- c(0.5, 0.75, 1.25, 1.5) * rd_optim_bw
+bw_mults <- c(0.5, 0.75, 1.25, 1.5)
+
+bws <- bw_mults * rd_optim_bw
 
 robust_bw_results <- lapply(bws, function(h) {
   est <- rdrobust(
@@ -279,7 +293,9 @@ robust_bw_results <- lapply(bws, function(h) {
 })
 
 robust_df <- bind_rows(robust_bw_results) %>%
+  mutate(mult = bw_mults) %>%
   add_row(
+    mult = 1,
     h = rd_optim_bw,
     tau = rd_results$triangular$coef[1],
     ci_low = rd_results$triangular$ci[1], ci_high = rd_results$triangular$ci[4],
@@ -291,6 +307,7 @@ ggplot(robust_df, aes(x = h, y = tau)) +
   geom_point(color = "darkred") +
   geom_errorbar(aes(ymin = ci_low, ymax = ci_high), width = 0.2) +
   geom_hline(yintercept = 0, linetype = "dashed") +
+  scale_x_continuous(sec.axis = sec_axis(~ . / rd_optim_bw, name = "Bandwidth multiplier")) +
   theme_minimal() +
   ylab("RD Treatment Effect") +
   xlab("Bandwidth")
@@ -299,13 +316,13 @@ ggsave("out/Graph_3.png")
 
 # Plotting the RD point estimates for different bandwidth sizes, we can see that
 # they are all positive. Also, the point estimates are generally aligned at almost
-# 3, with the only exception being the estimate for the 0.5 bandwidth, which is only 1.8.
-# Looking at their 95% CIs, the 0.5 and 0.75 bandwidth estimates are not statistically
-# significant at the 5% level, while the 1.25 and 1.5 bandwidth estimates are statistically
-# significant at the 5% level.
+# 3, with the only exception being the estimate for the 0.5x bandwidth, which is
+# only 1.8. Looking at their conventional 95% CIs, the 0.5x and 0.75x bandwidth
+# estimates are not statistically significant at the 5% level, while the 1.25x and
+# 1.5x bandwidth estimates are statistically significant at the 5% level.
 # This weaker significance at narrow bandwidths is consistent with lower precision,
 # since the number of observations falls substantially as the bandwidth shrinks:
-# from 795 for the optimal bandwidth to 622 and 422 for the 0.75 and 0.5 bandwidths, respectively.
+# from 795 for the optimal bandwidth to 622 and 422 for the 0.75x and 0.5x bandwidths, respectively.
 # Overall, the estimated effect remains positive across specifications, while inference
 # becomes less precise for narrower bandwidths.
 
@@ -335,7 +352,7 @@ data_fraud <- read.csv("files/fraud_pcenter_final.csv", sep = ";") %>%
 # (a)
 ################################################################################
 
-# Gonzalez uses dist/distance, we use X_dist
+# Gonzalez uses dist/distance, we use X_dist (sanitized variable name for _dist)
 
 rdplot(data_fraud$cov, data_fraud$X_dist_aligned, p = 1,
   x.label = "Running variable", y.label = "Coverage")
@@ -353,11 +370,12 @@ summary(rdrobust(data_fraud$cov, data_fraud$X_dist_aligned, p = 1, all = TRUE))
 # a positive distance, being inside the coverage boundary, no longer definitively means
 # that the center has coverage, but instead increases the probability of being covered.
 # In the RD regression of coverage on distance, we see that the estimated jump in
-# coverage probability at the cutoff is about 12pp, but the estimate is imprecise.
+# coverage probability at the cutoff is about 12pp, which implies a weak first stage.
+# Likewise, the estimate is imprecise.
 # Thus, given noisy distance measurements, the design must be treated as a fuzzy RD.
 
 # On assumptions, for Gonzalez's sharp design we need
-# - Continuity of potential outcomes at the boundary
+# - Continuity of potential outcomes & predetermined variables at the boundary
 # - No precise manipulation of the running variable around the boundary
 # - Treated and control observations on both sides of boundary segments
 # For the fuzzy RDD reinterpretation, we need
@@ -468,12 +486,18 @@ mod_perf <- expand_grid(y = c("vote_comb_ind", "vote_comb"), x = "distance", reg
 
 # map(mod_perf$mod, summary)
 
-modelsummary::modelsummary(
+table_sharp_repl <- modelsummary(
   mod_perf$mod,
-  output = "huxtable", coef_omit = "dist",
+  statistic = NULL,
+  coef_omit = "dist",
+  coef_rename = c("cov" = "Sharp RDD estimate"),
   gof_map = rdd_stat_fmt,
-  gof_function = get_rdd_stats
+  gof_function = get_rdd_stats,
+  title = "Sharp replication of columns (1), (3), (5) of Table 2",
+  output = "out/Q2_c_1.txt"
 )
+
+table_sharp_repl
 
 # Imperfect replication
 mod_imperf <- expand_grid(y = c("vote_comb_ind", "vote_comb"), x = "X_dist_aligned", reg = c(0, 1, 2)) %>%
@@ -486,13 +510,19 @@ mod_imperf <- expand_grid(y = c("vote_comb_ind", "vote_comb"), x = "X_dist_align
 
 # map(mod_imperf$mod, summary)
 
-modelsummary(
+table_fuzzy_repl <- modelsummary(
   mod_imperf$mod,
-  output = "huxtable",
+  # output = "huxtable",
+  statistic = NULL,
   coef_omit = "^(?!Con)",
+  coef_rename = c("Conventional" = "Fuzzy RDD estimate"),
   gof_map = rdd_stat_fmt,
-  gof_function = get_rdd_stats_fuzzy
+  gof_function = get_rdd_stats_fuzzy,
+  title = "Fuzzy replication of columns (1), (3), (5) of Table 2",
+  output = "out/Q2_c_2.txt"
 )
+
+table_fuzzy_repl
 
 # We attempt to replicate Gonzalez (2021) as closely as possible. Their estimation
 # slightly differs from current default settings: they use a triangular kernel for
@@ -502,14 +532,14 @@ modelsummary(
 # For estimating the fuzzy RDD, we mimic this specification, but instead of an explicit
 # 2SLS estimation procedure, we use `rdrobust` with the `fuzzy` option.
 
-# Under the previously listed assumptions, the fuzzy-RD estimates should be considered
-# as LATEs for compliers at the boundary.
+# Under the previously listed assumptions, the fuzzy-RD estimates can be considered
+# as Wald/LATE estimates for "complying" polling centers at the boundary.
 # These effects are qualitatively aligned with the original ones, i.e., that coverage
 # reduces fraud at near-boundary polling centers. On average, the fuzzy-RD point
 # estimates imply a 13.8pp reduction in the probability of at least one fraudulent
 # station and a 12pp lower share of fraudulent votes. This effect is also stronger
 # for polling centers in the Southeastern region, while for centers in the Northwestern
 # region, the effects are close to zero.
-# The greater noisiness and larger magnitudes in the fuzzy RDD estimates is partly
-# due to the scaling by the first stage RDD of treatment probability being less
-# than one. So, these results should be interpreted with some caution.
+# The greater noisiness and larger magnitudes in the fuzzy RDD estimates are partly
+# due to the scaling by the small first stage RDD of treatment probability. So,
+# these results should be interpreted with some caution.
